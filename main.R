@@ -32,10 +32,9 @@ conditionalMutualInformation <- function(attributes, class) {
 
     return(mutualInformations)
 }
-head(mutinformation(data))
 
 condInformation <- function(atr1atr2class) {
-    condinformation = 0.0
+    condinformation <- 0.0
     for (i in unique(atr1atr2class$atr1)) {
         for (j in unique(atr1atr2class$atr2)) {
             for (c in unique(atr1atr2class$class)) {
@@ -52,7 +51,7 @@ condInformation <- function(atr1atr2class) {
                 } else {
                    partialCondInf <- multiProb * (log((condProbAtr1Atr2 / (condProbAtr1 * condProbAtr2)), 2))
                 }
-                condinformation = condinformation + partialCondInf
+                condinformation <- condinformation + partialCondInf
             }
         }
     }
