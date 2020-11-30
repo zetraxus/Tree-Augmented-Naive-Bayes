@@ -9,8 +9,9 @@ curr_file <- file_list[1]
 
 data <- read.csv(file = curr_file, header = FALSE)
 I <- conditionalMutualInformation(data[,1:9], data[,10])
-mst <- MST(I)
-print(mst)
+mst_undirected_tree <- MST(I)
+mst_directed_tree <- direct_tree(mst_undirected_tree)
+print(mst_directed_tree)
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
@@ -20,7 +21,6 @@ print(mst)
 
 # todo
 # podzial zbioru na treningowy/testowy, chwilowo mozna operowac na calosci
-# tu nie jestem pewien:
 # wyliczenie prawdopodobienstw warunkowych dla kazdego wezla z wykorzystaniem wygladzenia Laplace'a
 # predykcja przy wykorzystaniu drzewa
 

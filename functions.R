@@ -69,3 +69,35 @@ MST <- function(df){
 
   return(data.frame(atr1_vec, atr2_vec, I_vec))
 }
+
+direct_tree <- function(tree){
+  added_to_queue <- integer(max(tree$atr2))
+  tree["directed"] <- 0
+  start_node <- sample(1:(max(tree$atr2)), 1)
+  queue <- c(start_node)
+  results_atr1 <- c()
+  results_atr2 <- c()
+  results_I <- c()
+  while (length(queue) !=0){
+    atr <- head(queue, 1)
+    queue <- tail(queue, length(queue) - 1)
+    added_to_queue[atr] <- 1
+    for (row in seq_len(nrow(tree))) {
+      if (tree[row, "atr1_vec"] == atr && added_to_queue[tree[row, "atr2_vec"]] == 0){
+        added_to_queue[tree[row, "atr2_vec"]] <- 1
+        queue <- append(queue, tree[row, "atr2_vec"])
+        results_atr1 <- append(results_atr1, atr)
+        results_atr2 <- append(results_atr2, tree[row, "atr2_vec"])
+        results_I <- append(results_I, tree[row, "I_vec"])
+      }
+      if (tree[row, "atr2_vec"] == atr && added_to_queue[tree[row, "atr1_vec"]] == 0){
+        added_to_queue[tree[row, "atr1_vec"]] <- 1
+        queue <- append(queue, tree[row, "atr1_vec"], after = length(queue))
+        results_atr1 <- append(results_atr1, atr, after = length(results_atr1))
+        results_atr2 <- append(results_atr2, tree[row, "atr1_vec"], after = length(results_atr2))
+        results_I <- append(results_I, tree[row, "I_vec"])
+      }
+    }
+  }
+  return(data.frame(results_atr1, results_atr2, results_I))
+}
