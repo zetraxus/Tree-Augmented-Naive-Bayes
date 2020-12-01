@@ -11,12 +11,14 @@ curr_file <- file_list[1]
 data <- read.csv(file = curr_file, header = FALSE)
 
 # discretize column "V1" in dataframe "data", bins = 5
-# data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
+#data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
 
 I <- conditionalMutualInformation(data[,1:9], data[,10])
 mst_undirected_tree <- MST(I)
 mst_directed_tree <- direct_tree(mst_undirected_tree)
 print(mst_directed_tree)
+conditionalProbabilities <- calculateConditionaProbabilities(mst_directed_tree, data[,1:9], data[,10])
+print(conditionalProbabilities)
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
