@@ -2,15 +2,21 @@
 # Created on: 26.11.2020
 
 library(dplyr)
+library(infotheo)
 source("functions.R")
 
 file_list <- c("data/cmc.csv", "data/diabetes.csv", "data/occupancy.csv", "data/wine.csv", "data/zoo.csv")
 curr_file <- file_list[1]
 
 data <- read.csv(file = curr_file, header = FALSE)
+
+# discretize column "V1" in dataframe "data", bins = 5
+# data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
+
 I <- conditionalMutualInformation(data[,1:9], data[,10])
-mst <- MST(I)
-print(mst)
+mst_undirected_tree <- MST(I)
+mst_directed_tree <- direct_tree(mst_undirected_tree)
+print(mst_directed_tree)
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
@@ -20,7 +26,6 @@ print(mst)
 
 # todo
 # podzial zbioru na treningowy/testowy, chwilowo mozna operowac na calosci
-# tu nie jestem pewien:
 # wyliczenie prawdopodobienstw warunkowych dla kazdego wezla z wykorzystaniem wygladzenia Laplace'a
 # predykcja przy wykorzystaniu drzewa
 
