@@ -72,12 +72,11 @@ MST <- function(df){
 
 direct_tree <- function(tree){
   added_to_queue <- integer(max(tree$atr2))
-  tree["directed"] <- 0
   start_node <- sample(1:(max(tree$atr2)), 1)
-  queue <- c(start_node)
-  results_atr1 <- c()
-  results_atr2 <- c()
-  results_I <- c()
+  queue <- start_node
+  results_atr1 <- NULL
+  results_atr2 <- NULL
+  results_I <- NULL
   while (length(queue) !=0){
     atr <- head(queue, 1)
     queue <- tail(queue, length(queue) - 1)
