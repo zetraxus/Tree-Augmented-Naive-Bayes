@@ -17,6 +17,8 @@ I <- conditionalMutualInformation(data[,1:9], data[,10])
 mst_undirected_tree <- MST(I)
 mst_directed_tree <- direct_tree(mst_undirected_tree)
 print(mst_directed_tree)
+conditionalProbabilities <- calculateConditionalProbabilities(mst_directed_tree, data[,1:9], data[,10])
+print(conditionalProbabilities)
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
