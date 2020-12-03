@@ -14,7 +14,7 @@ preprocess_data <- function(dataset){
 
 train <- function(data, method){
   if (method == "TAN"){
-    I <- conditionalMutualInformation(data[,1:9], data[,10])
+    I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
     mst_undirected_tree <- MST(I)
     mst_directed_tree <- direct_tree(mst_undirected_tree)
     print(mst_directed_tree)

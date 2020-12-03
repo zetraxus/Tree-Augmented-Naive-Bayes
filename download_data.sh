@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # prepare dir
 rm -rf data/*
 mkdir -p data
