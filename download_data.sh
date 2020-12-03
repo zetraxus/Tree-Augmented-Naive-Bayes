@@ -18,3 +18,8 @@ cat data/*.txt >> data/occupancy.csv
 sed -i '1d' data/occupancy.csv
 rm data/*.txt
 rm data/occupancy.zip
+cut -d, -f1-2 --complement data/occupancy.csv >> data/occupancy_temp.csv
+mv data/occupancy_temp.csv data/occupancy.csv
+
+cut -d, -f1 --complement data/zoo.csv >> data/zoo_temp.csv
+mv data/zoo_temp.csv data/zoo.csv
