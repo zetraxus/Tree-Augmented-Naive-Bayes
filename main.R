@@ -5,29 +5,60 @@ library(dplyr)
 library(infotheo)
 source("functions.R")
 
-file_list <- c("data/cmc.csv", "data/diabetes.csv", "data/occupancy.csv", "data/wine.csv", "data/zoo.csv")
-curr_file <- file_list[1]
+preprocess_data <- function(dataset){
+  data <- read.csv(file = dataset, header = FALSE)
+  data <- discretize_dataset(data, dataset)
+  splitted_data <- split_dataset(data, 0.8)
+  return (splitted_data)
+}
 
-data <- read.csv(file = curr_file, header = FALSE)
+train <- function(data, method){
+  if (method == "TAN"){
+    I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
+    mst_undirected_tree <- MST(I)
+    mst_directed_tree <- direct_tree(mst_undirected_tree)
+    print(mst_directed_tree)
+    return(mst_directed_tree) # todo fix it later
+  }
+}
 
-# discretize column "V1" in dataframe "data", bins = 5
-#data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
+test <- function(data, model, method){
+  if (method == "TAN"){
+    # todo
+  }
+}
 
-I <- conditionalMutualInformation(data[,1:9], data[,10])
-mst_undirected_tree <- MST(I)
-mst_directed_tree <- direct_tree(mst_undirected_tree)
-print(mst_directed_tree)
-conditionalProbabilities <- calculateConditionalProbabilities(mst_directed_tree, data[,1:9], data[,10])
-print(conditionalProbabilities)
+save <- function(results, method){
+
+}
+
+main <- function(){
+  datasets <- c("data/cmc.csv", "data/diabetes.csv", "data/occupancy.csv", "data/wine.csv", "data/zoo.csv")
+  algorithms <- c("TAN", "NB", "CTREE")
+  for (dataset in datasets){
+    splitted_data <- preprocess_data(dataset)
+    for (algorithm in algorithms){
+      model <- train(splitted_data$train, algorithm)
+      results <- test(splitted_data$test, model, algorithm)
+      save(results, algorithm)
+    }
+
+    if (dataset == "data/cmc.csv"){ # todo remove it later
+      break
+    }
+  }
+}
+
+main()
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
 # wyliczenie informacji wzajemnej miedzy atrybutami i wpisanie do macierzy
 # posortowanie wszystkich trojek (Atrybut x Atrybut x Informacja wzajemna miedzy nimi)
 # wyznaczenie drzewa rozpinajacego - (liczba_atrybutow -1) krawedzi (Atrybut x Atrybut x Informacja)
+# podzial zbioru na treningowy/testowy, chwilowo mozna operowac na calosci
 
 # todo
-# podzial zbioru na treningowy/testowy, chwilowo mozna operowac na calosci
 # wyliczenie prawdopodobienstw warunkowych dla kazdego wezla z wykorzystaniem wygladzenia Laplace'a
 # predykcja przy wykorzystaniu drzewa
 

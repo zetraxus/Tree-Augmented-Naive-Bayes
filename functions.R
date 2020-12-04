@@ -165,3 +165,17 @@ calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
 
   return(probabilities)
 }
+
+discretize_dataset <- function(data, dataset_name){
+  # discretize column "V1" in dataframe "data", bins = 5
+  # data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
+  return (data) # todo fix it
+}
+
+split_dataset <- function(data, train_size){
+  bound <- floor(nrow(data) * train_size)
+  #data <- data[sample(nrow(data)), ] #sample rows
+  data.train <- data[1:bound, ]
+  data.test <- data[(bound+1):nrow(data), ]
+  return (list("train" = data.train, "test" = data.test))
+}
