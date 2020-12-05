@@ -114,3 +114,22 @@ split_dataset <- function(data, train_size){
   data.test <- data[(bound+1):nrow(data), ]
   return (list("train" = data.train, "test" = data.test))
 }
+
+getClassesProbability <- function(classes) {
+  colnames(classes) <- "class"
+  probabilities <- data.frame(matrix(ncol = 2, nrow = 0))
+  columns <- c("class", "prob")
+  colnames(probabilities) <- columns
+  for (c in unique(classes)) {
+    probability <- fata.frame(c, getClassProbability(c, classes));
+    colnames(probability) <- columns
+    probabilities <- rbind(probabilities, probability);
+  }
+
+  return(probabilities)
+}
+
+getClassProbability <- function(c, classes) {
+  numberOfClass = classes %>% filter(class == c) %>% nrow()
+  return (numberOfClass / nrow(classes))
+}
