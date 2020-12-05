@@ -105,7 +105,7 @@ direct_tree <- function(tree){
 
 calculateConditionalProbabilities <- function (tree, args, class) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "porbability")
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
   rootAtr <- tree[1,]$results_atr1
@@ -126,7 +126,7 @@ calculateConditionalProbabilities <- function (tree, args, class) {
 
 calculateConditionalProbabilitiesForAtribute <- function(atrNum, xParentClass) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "porbability")
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
   for (i in unique(xParentClass$x)) {
@@ -148,7 +148,7 @@ calculateConditionalProbabilitiesForAtribute <- function(atrNum, xParentClass) {
 
 calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "porbability")
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
   for(r in unique(rootClass$root)) {
