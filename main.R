@@ -20,7 +20,9 @@ train <- function(data, method){
     print(mst_directed_tree)
     conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
     print(conditionalProbabilities)
-    return(mst_directed_tree) # todo fix it later
+    classesProb <- calculateClassProbabilities(data[ncol(data)])
+    print(classesProb)
+    return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
   }
 }
 

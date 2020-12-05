@@ -180,13 +180,13 @@ split_dataset <- function(data, train_size){
   return (list("train" = data.train, "test" = data.test))
 }
 
-getClassesProbability <- function(classes) {
+calculateClassProbabilities <- function(classes) {
   colnames(classes) <- "class"
   probabilities <- data.frame(matrix(ncol = 2, nrow = 0))
   columns <- c("class", "prob")
   colnames(probabilities) <- columns
-  for (c in unique(classes)) {
-    probability <- fata.frame(c, getClassProbability(c, classes));
+  for (c in unique(classes$class)) {
+    probability <- data.frame(c, calculateClassProbability(c, classes));
     colnames(probability) <- columns
     probabilities <- rbind(probabilities, probability);
   }
@@ -194,7 +194,34 @@ getClassesProbability <- function(classes) {
   return(probabilities)
 }
 
-getClassProbability <- function(c, classes) {
+calculateClassProbability <- function(c, classes) {
   numberOfClass = classes %>% filter(class == c) %>% nrow()
   return (numberOfClass / nrow(classes))
+}
+
+predict <- function (args, tree, contionalProbabilities, classProbabilities) {
+  classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
+  columns <- c("class", "predictedProb")
+  colnames(classesPrediction) <- columns
+  for (c in unique(classProbabilities$class)) {
+    contionalProbForClass <- contionalProbabilities %>% filter(classVal == c)
+    classProbability <- classProbabilities[class = c]$prob
+    rootAtrNum <- tree[1,]$results_atr1
+    rootAtrVal <- args[rootAtrNum]
+    rootProbRow <- contionalProbForClass %>% filter(atrNum == rootAtrNum && atrVal == rootAtrVal)
+    classProbability <- classProbability * rootProbRow$probability
+    for(row in seq_len(nrow(tree))) {
+      parent <- tree[row,]$results_atr1
+      atr <- tree[row,]$results_atr2
+      parentVal <- args[parent]
+      atrVal <- args[atr]
+      conditionalProbRow <- contionalProbForClass %>% filter(atrNum == atr && atrVal == atrVal && parentVal == parentVal)
+      classProbability <- classProbability * conditionalProbRow$probability
+    }
+    classPrediction <- data.frame(c, classProbability)
+    colnames(classPrediction) <- columns
+    classesPrediction <- rbinf(classesPrediction, classPrediction)
+  }
+
+  return(classesPrediction)
 }
