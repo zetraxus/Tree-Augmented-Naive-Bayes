@@ -18,6 +18,8 @@ train <- function(data, method){
     mst_undirected_tree <- MST(I)
     mst_directed_tree <- direct_tree(mst_undirected_tree)
     print(mst_directed_tree)
+    conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
+    print(conditionalProbabilities)
     return(mst_directed_tree) # todo fix it later
   }
 }
@@ -50,7 +52,6 @@ main <- function(){
 }
 
 main()
-
 
 # gotowe
 # stworzenie macierzy liczba_atrybutow x liczba_atrybutow
