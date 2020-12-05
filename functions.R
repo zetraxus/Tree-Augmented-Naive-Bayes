@@ -1,3 +1,5 @@
+LAPLACE_CORRECTION <- 1
+
 conditionalMutualInformation <- function(attributes, class) {
     mutualInformations <- data.frame(matrix(ncol = 3, nrow = 0))
     columns <- c("I", "atr1", "atr2")
@@ -99,6 +101,69 @@ direct_tree <- function(tree){
     }
   }
   return(data.frame(results_atr1, results_atr2, results_I))
+}
+
+calculateConditionalProbabilities <- function (tree, args, class) {
+  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
+  colnames(probabilities) <- columns
+
+  rootAtr <- tree[1,]$results_atr1
+  rootClass <- data.frame(args[,rootAtr], class)
+  colnames(rootClass) <- c("root", "class")
+  probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForRoot(rootAtr, rootClass))
+
+  for(row in seq_len(nrow(tree))) {
+    atrNum <- tree[row,]$results_atr2
+    parentNum <- tree[row,]$results_atr1
+    xParentClass <- data.frame(args[,atrNum], args[,parentNum], class)
+    colnames(xParentClass) <- c("x", "parent", "class")
+    probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForAtribute(atrNum, xParentClass))
+  }
+
+  return(probabilities)
+}
+
+calculateConditionalProbabilitiesForAtribute <- function(atrNum, xParentClass) {
+  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
+  colnames(probabilities) <- columns
+
+  for (i in unique(xParentClass$x)) {
+    for (p in unique(xParentClass$parent)) {
+      for (c in unique(xParentClass$class)) {
+        rowsWithParentAndClass <- xParentClass %>% filter(parent == p) %>% filter(class == c)
+        numberOfRowsWithParentAndClass <- nrow(rowsWithParentAndClass) + LAPLACE_CORRECTION
+        numberOfRowsWithX <- rowsWithParentAndClass %>% filter(x == i) %>% nrow()
+        numberOfRowsWithX <- numberOfRowsWithX + LAPLACE_CORRECTION
+        conditionalProbability <- data.frame(atrNum, i, p, c, numberOfRowsWithX / numberOfRowsWithParentAndClass)
+        colnames(conditionalProbability) <- columns
+        probabilities <- rbind(probabilities, conditionalProbability)
+      }
+    }
+  }
+
+  return(probabilities)
+}
+
+calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
+  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
+  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
+  colnames(probabilities) <- columns
+
+  for(r in unique(rootClass$root)) {
+    for (c in unique(rootClass$class)) {
+      rowsWithClass <- rootClass %>% filter(class == c)
+      numberOfRowsWithClass <- nrow(rowsWithClass) + LAPLACE_CORRECTION
+      numberOfRowsWithRootAndClass <- rowsWithClass %>% filter(root == r) %>% nrow()
+      numberOfRowsWithRootAndClass <- numberOfRowsWithRootAndClass + LAPLACE_CORRECTION
+      conditionalProbability <- data.frame(rootNum, r, NA, c, numberOfRowsWithRootAndClass / numberOfRowsWithClass)
+      colnames(conditionalProbability) <- columns
+      probabilities <- rbind(probabilities, conditionalProbability)
+    }
+  }
+
+  return(probabilities)
 }
 
 discretize_dataset <- function(data, dataset_name){
