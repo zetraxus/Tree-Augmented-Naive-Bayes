@@ -28,7 +28,18 @@ train <- function(data, method){
 
 test <- function(data, model, method){
   if (method == "TAN"){
-    # todo
+    classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
+    columns <- c("predictedClass", "realClass")
+    colnames(classesPrediction) <- columns
+    for (i in 1:(nrow(data))) {
+      predictedClass <- predict(data = data[i, 1:(ncol(data) - 1)], model = model)
+      predictedVsReal <- data.frame(predictedClass, data[i, ncol(data)])
+      colnames(predictedVsReal) <- columns
+      classesPrediction <- rbind(classesPrediction, predictedVsReal)
+    }
+
+    print(classesPrediction)
+    return(classesPrediction)
   }
 }
 
@@ -44,6 +55,9 @@ main <- function(){
     for (algorithm in algorithms){
       model <- train(splitted_data$train, algorithm)
       results <- test(splitted_data$test, model, algorithm)
+      goodPredictions <- results %>% filter(predictedClass == realClass) %>% nrow()
+      acc <- goodPredictions/(nrow(results))
+      print(acc)
       save(results, algorithm)
     }
 
