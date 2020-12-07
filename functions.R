@@ -1,3 +1,4 @@
+source("probabilities.R")
 
 MST <- function(df){
   df <- df[order(-df$I),]
