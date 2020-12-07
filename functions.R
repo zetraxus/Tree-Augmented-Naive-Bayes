@@ -195,7 +195,7 @@ calculateClassProbabilities <- function(classes) {
 }
 
 calculateClassProbability <- function(c, classes) {
-  numberOfClass = classes %>% filter(class == c) %>% nrow()
+  numberOfClass <- classes %>% filter(class == c) %>% nrow()
   return (numberOfClass / nrow(classes))
 }
 
@@ -232,4 +232,11 @@ predictClasses <- function(args, tree, contionalProbabilities, classProbabilitie
   }
 
   return(classesPrediction)
+}
+
+calc_acc <- function(list_pred_real){
+  df_pred_real <- data.frame(list_pred_real)
+  correct <- df_pred_real %>% filter(pred == real) %>% nrow()
+  acc <- correct / nrow(df_pred_real)
+  return (acc)
 }
