@@ -15,30 +15,13 @@ preprocess_data <- function(dataset){
 
 train <- function(data, method){
   if (method == "TAN"){
-    I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
-    mst_undirected_tree <- MST(I)
-    mst_directed_tree <- direct_tree(mst_undirected_tree)
-    conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
-    classesProb <- calculateClassProbabilities(data[ncol(data)])
-    return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
+    return(trainTAN(data))
   }
 }
 
 test <- function(data, model, method){
   if (method == "TAN"){
-    predicted <- NULL
-    real <- NULL
-    for (i in 1:(nrow(data))) {
-      predictedClass <- predict(data = data[i, 1:(ncol(data) - 1)], model = model)
-      predicted <- append(predicted, predictedClass)
-      real <- append(real, data[i, ncol(data)])
-    }
-
-    # todo add more metrics
-    acc <- calc_acc(list("pred" = predicted, "real" = real))
-    acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-    return (c(acc, acc2))
+    return(testTAN(data, model))
   }
 }
 

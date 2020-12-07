@@ -1,5 +1,21 @@
 source("probabilities.R")
 
+# Train TAN model on given data
+#
+# Arguments:
+#   data <- training data (last column contains class value)
+#
+# Return: trained TAN model
+#
+trainTAN <- function(data) {
+  I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
+  mst_undirected_tree <- MST(I)
+  mst_directed_tree <- direct_tree(mst_undirected_tree)
+  conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
+  classesProb <- calculateClassProbabilities(data[ncol(data)])
+  return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
+}
+
 MST <- function(df){
   df <- df[order(-df$I),]
   atr1_vec <- vector()
@@ -70,6 +86,30 @@ split_dataset <- function(data, train_size){
   return (list("train" = data.train, "test" = data.test))
 }
 
+# Method to test TAN model on gien data
+#
+# Arguments:
+#   data -> test data
+#   model -> trained TAN model
+#
+# Return: todo add more metrics
+#
+testTAN <- function(data, model) {
+  predicted <- NULL
+  real <- NULL
+  for (i in 1:(nrow(data))) {
+    predictedClass <- predict(data = data[i, 1:(ncol(data) - 1)], model = model)
+    predicted <- append(predicted, predictedClass)
+    real <- append(real, data[i, ncol(data)])
+  }
+
+  # todo add more metrics
+  acc <- calc_acc(list("pred" = predicted, "real" = real))
+  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
+
+  return (c(acc, acc2))
+}
+
 # Predict class for given attributes values based on given model
 #
 # Arguments:
@@ -77,6 +117,7 @@ split_dataset <- function(data, train_size){
 #   model <- TAN model
 #
 # Return: best matching class for given attributes values
+#
 predict <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
                         classProbabilities = model$classesProb)
