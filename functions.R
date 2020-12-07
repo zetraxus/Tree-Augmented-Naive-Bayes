@@ -1,50 +1,19 @@
-LAPLACE_CORRECTION <- 1
+source("probabilities.R")
 
-conditionalMutualInformation <- function(attributes, class) {
-    mutualInformations <- data.frame(matrix(ncol = 3, nrow = 0))
-    columns <- c("I", "atr1", "atr2")
-    colnames(mutualInformations) <- columns
-    for (i in 1:(ncol(attributes) - 1)) {
-        for (j in (i + 1):ncol(attributes)) {
-            atr1atr2class <- data.frame(matrix(ncol = 3, nrow = nrow(attributes)))
-            colnames(atr1atr2class) <- c("atr1", "atr2", "class")
-            atr1atr2class$atr1 <- attributes[,i]
-            atr1atr2class$atr2 <- attributes[,j]
-            atr1atr2class$class <- class
-            I <- condInformation(atr1atr2class)
-            mutualInformation <- data.frame(I, i, j)
-            colnames(mutualInformation) <- columns
-            mutualInformations <- rbind(mutualInformations, mutualInformation)
-        }
-    }
-
-    return(mutualInformations)
-}
-
-condInformation <- function(atr1atr2class) {
-    condinformation <- 0.0
-    for (i in unique(atr1atr2class$atr1)) {
-        for (j in unique(atr1atr2class$atr2)) {
-            for (c in unique(atr1atr2class$class)) {
-                rowsWithClass <- atr1atr2class %>% filter(class == c) %>% nrow()
-                rowsWithClassAndAtr1 <- atr1atr2class %>% filter(atr1 == i) %>% filter(class == c) %>% nrow()
-                rowsWithClassAndAtr2 <- atr1atr2class %>% filter(atr2 == j) %>% filter(class == c) %>% nrow()
-                rowsWithAtr1AndAtr2AndClass <- atr1atr2class %>% filter(atr1 == i) %>% filter(atr2 == j) %>% filter(class == c) %>% nrow()
-                multiProb <- (rowsWithAtr1AndAtr2AndClass / nrow(atr1atr2class))
-                condProbAtr1Atr2 <- (rowsWithAtr1AndAtr2AndClass / rowsWithClass)
-                condProbAtr1 <- (rowsWithClassAndAtr1 / rowsWithClass)
-                condProbAtr2 <- (rowsWithClassAndAtr2 / rowsWithClass)
-                if (multiProb == 0 || condProbAtr1 == 0 || condProbAtr2 == 0 || condProbAtr1Atr2 == 0) {
-                    partialCondInf <- 0.0
-                } else {
-                   partialCondInf <- multiProb * (log((condProbAtr1Atr2 / (condProbAtr1 * condProbAtr2)), 2))
-                }
-                condinformation <- condinformation + partialCondInf
-            }
-        }
-    }
-
-    return(condinformation)
+# Train TAN model on given data
+#
+# Arguments:
+#   data <- training data (last column contains class value)
+#
+# Return: trained TAN model
+#
+trainTAN <- function(data) {
+  I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
+  mst_undirected_tree <- MST(I)
+  mst_directed_tree <- direct_tree(mst_undirected_tree)
+  conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
+  classesProb <- calculateClassProbabilities(data[ncol(data)])
+  return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
 }
 
 MST <- function(df){
@@ -103,69 +72,6 @@ direct_tree <- function(tree){
   return(data.frame(results_atr1, results_atr2, results_I))
 }
 
-calculateConditionalProbabilities <- function (tree, args, class) {
-  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
-  colnames(probabilities) <- columns
-
-  rootAtr <- tree[1,]$results_atr1
-  rootClass <- data.frame(args[,rootAtr], class)
-  colnames(rootClass) <- c("root", "class")
-  probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForRoot(rootAtr, rootClass))
-
-  for(row in seq_len(nrow(tree))) {
-    atrNum <- tree[row,]$results_atr2
-    parentNum <- tree[row,]$results_atr1
-    xParentClass <- data.frame(args[,atrNum], args[,parentNum], class)
-    colnames(xParentClass) <- c("x", "parent", "class")
-    probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForAtribute(atrNum, xParentClass))
-  }
-
-  return(probabilities)
-}
-
-calculateConditionalProbabilitiesForAtribute <- function(atrNum, xParentClass) {
-  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
-  colnames(probabilities) <- columns
-
-  for (i in unique(xParentClass$x)) {
-    for (p in unique(xParentClass$parent)) {
-      for (c in unique(xParentClass$class)) {
-        rowsWithParentAndClass <- xParentClass %>% filter(parent == p) %>% filter(class == c)
-        numberOfRowsWithParentAndClass <- nrow(rowsWithParentAndClass) + LAPLACE_CORRECTION
-        numberOfRowsWithX <- rowsWithParentAndClass %>% filter(x == i) %>% nrow()
-        numberOfRowsWithX <- numberOfRowsWithX + LAPLACE_CORRECTION
-        conditionalProbability <- data.frame(atrNum, i, p, c, numberOfRowsWithX / numberOfRowsWithParentAndClass)
-        colnames(conditionalProbability) <- columns
-        probabilities <- rbind(probabilities, conditionalProbability)
-      }
-    }
-  }
-
-  return(probabilities)
-}
-
-calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
-  probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
-  columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
-  colnames(probabilities) <- columns
-
-  for(r in unique(rootClass$root)) {
-    for (c in unique(rootClass$class)) {
-      rowsWithClass <- rootClass %>% filter(class == c)
-      numberOfRowsWithClass <- nrow(rowsWithClass) + LAPLACE_CORRECTION
-      numberOfRowsWithRootAndClass <- rowsWithClass %>% filter(root == r) %>% nrow()
-      numberOfRowsWithRootAndClass <- numberOfRowsWithRootAndClass + LAPLACE_CORRECTION
-      conditionalProbability <- data.frame(rootNum, r, NA, c, numberOfRowsWithRootAndClass / numberOfRowsWithClass)
-      colnames(conditionalProbability) <- columns
-      probabilities <- rbind(probabilities, conditionalProbability)
-    }
-  }
-
-  return(probabilities)
-}
-
 discretize_dataset <- function(data, dataset_name){
   # discretize column "V1" in dataframe "data", bins = 5
   # data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
@@ -180,58 +86,42 @@ split_dataset <- function(data, train_size){
   return (list("train" = data.train, "test" = data.test))
 }
 
-calculateClassProbabilities <- function(classes) {
-  colnames(classes) <- "class"
-  probabilities <- data.frame(matrix(ncol = 2, nrow = 0))
-  columns <- c("class", "prob")
-  colnames(probabilities) <- columns
-  for (c in unique(classes$class)) {
-    probability <- data.frame(c, calculateClassProbability(c, classes));
-    colnames(probability) <- columns
-    probabilities <- rbind(probabilities, probability);
+# Method to test TAN model on gien data
+#
+# Arguments:
+#   data -> test data
+#   model -> trained TAN model
+#
+# Return: todo add more metrics
+#
+testTAN <- function(data, model) {
+  predicted <- NULL
+  real <- NULL
+  for (i in 1:(nrow(data))) {
+    predictedClass <- predict(data = data[i, 1:(ncol(data) - 1)], model = model)
+    predicted <- append(predicted, predictedClass)
+    real <- append(real, data[i, ncol(data)])
   }
 
-  return(probabilities)
+  # todo add more metrics
+  acc <- calc_acc(list("pred" = predicted, "real" = real))
+  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
+
+  return (c(acc, acc2))
 }
 
-calculateClassProbability <- function(c, classes) {
-  numberOfClass <- classes %>% filter(class == c) %>% nrow()
-  return (numberOfClass / nrow(classes))
-}
-
+# Predict class for given attributes values based on given model
+#
+# Arguments:
+#   data <- attributes values
+#   model <- TAN model
+#
+# Return: best matching class for given attributes values
+#
 predict <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
                         classProbabilities = model$classesProb)
   return(prediction[which.max(prediction$predictedProb),]$class)
-}
-
-predictClasses <- function(args, tree, contionalProbabilities, classProbabilities) {
-  classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
-  columns <- c("class", "predictedProb")
-  colnames(classesPrediction) <- columns
-  for (c in unique(classProbabilities$class)) {
-    contionalProbForClass <- contionalProbabilities %>% filter(classVal == c)
-    classProbability <- classProbabilities[classProbabilities$class == c, ]$prob
-    rootAtrNum <- tree[1,]$results_atr1
-    rootAtrVal <- args[1, rootAtrNum]
-    rootProbRow <- contionalProbForClass %>% filter(atrNum == rootAtrNum)
-    rootProbRow <- rootProbRow %>% filter(atrVal == rootAtrVal)
-    classProbability <- classProbability * rootProbRow$probability
-
-    for(row in seq_len(nrow(tree))) {
-      parent <- tree[row,]$results_atr1
-      atr <- tree[row,]$results_atr2
-      pValue <- args[1, parent]
-      atrValue <- args[1, atr]
-      conditionalProbRow <- contionalProbForClass %>% filter(atrNum == atr)  %>% filter(atrVal == atrValue) %>% filter(parentVal == pValue)
-      classProbability <- classProbability * conditionalProbRow$probability
-    }
-    classPrediction <- data.frame(c, classProbability)
-    colnames(classPrediction) <- columns
-    classesPrediction <- rbind(classesPrediction, classPrediction)
-  }
-
-  return(classesPrediction)
 }
 
 calc_acc <- function(list_pred_real){
