@@ -179,3 +179,64 @@ split_dataset <- function(data, train_size){
   data.test <- data[(bound+1):nrow(data), ]
   return (list("train" = data.train, "test" = data.test))
 }
+
+calculateClassProbabilities <- function(classes) {
+  colnames(classes) <- "class"
+  probabilities <- data.frame(matrix(ncol = 2, nrow = 0))
+  columns <- c("class", "prob")
+  colnames(probabilities) <- columns
+  for (c in unique(classes$class)) {
+    probability <- data.frame(c, calculateClassProbability(c, classes));
+    colnames(probability) <- columns
+    probabilities <- rbind(probabilities, probability);
+  }
+
+  return(probabilities)
+}
+
+calculateClassProbability <- function(c, classes) {
+  numberOfClass <- classes %>% filter(class == c) %>% nrow()
+  return (numberOfClass / nrow(classes))
+}
+
+predict <- function(data, model) {
+  prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
+                        classProbabilities = model$classesProb)
+  return(prediction[which.max(prediction$predictedProb),]$class)
+}
+
+predictClasses <- function(args, tree, contionalProbabilities, classProbabilities) {
+  classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
+  columns <- c("class", "predictedProb")
+  colnames(classesPrediction) <- columns
+  for (c in unique(classProbabilities$class)) {
+    contionalProbForClass <- contionalProbabilities %>% filter(classVal == c)
+    classProbability <- classProbabilities[classProbabilities$class == c, ]$prob
+    rootAtrNum <- tree[1,]$results_atr1
+    rootAtrVal <- args[1, rootAtrNum]
+    rootProbRow <- contionalProbForClass %>% filter(atrNum == rootAtrNum)
+    rootProbRow <- rootProbRow %>% filter(atrVal == rootAtrVal)
+    classProbability <- classProbability * rootProbRow$probability
+
+    for(row in seq_len(nrow(tree))) {
+      parent <- tree[row,]$results_atr1
+      atr <- tree[row,]$results_atr2
+      pValue <- args[1, parent]
+      atrValue <- args[1, atr]
+      conditionalProbRow <- contionalProbForClass %>% filter(atrNum == atr)  %>% filter(atrVal == atrValue) %>% filter(parentVal == pValue)
+      classProbability <- classProbability * conditionalProbRow$probability
+    }
+    classPrediction <- data.frame(c, classProbability)
+    colnames(classPrediction) <- columns
+    classesPrediction <- rbind(classesPrediction, classPrediction)
+  }
+
+  return(classesPrediction)
+}
+
+calc_acc <- function(list_pred_real){
+  df_pred_real <- data.frame(list_pred_real)
+  correct <- df_pred_real %>% filter(pred == real) %>% nrow()
+  acc <- correct / nrow(df_pred_real)
+  return (acc)
+}
