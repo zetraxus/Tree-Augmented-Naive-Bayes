@@ -1,3 +1,4 @@
+LAPLACE_CORRECTION <- 1
 
 # Calculate probability of given class
 #

@@ -1,7 +1,5 @@
 source("math.R")
 
-LAPLACE_CORRECTION <- 1
-
 # Calculate conditional mutual information between every two attributes
 #
 # Arguments:
