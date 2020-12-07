@@ -4,6 +4,7 @@
 library(dplyr)
 library(infotheo)
 source("functions.R")
+source("probabilities.R")
 
 preprocess_data <- function(dataset){
   data <- read.csv(file = dataset, header = FALSE)
