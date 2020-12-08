@@ -16,12 +16,20 @@ preprocess_data <- function(dataset){
 train <- function(data, method){
   if (method == "TAN"){
     return(trainTAN(data))
+  } else if (method == "NB") {
+    return(trainNB(data))
+  } else if (method == "CTREE") {
+    return(trainCTREE(data))
   }
 }
 
 test <- function(data, model, method){
   if (method == "TAN"){
     return(testTAN(data, model))
+  } else if (method == "NB") {
+    return(testNB(data, model))
+  } else if (method == "CTREE") {
+    return(testCTREE(data, model))
   }
 }
 

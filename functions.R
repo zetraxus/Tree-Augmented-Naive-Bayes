@@ -1,3 +1,5 @@
+library(e1071)
+library(party)
 source("probabilities.R")
 
 # Train TAN model on given data
@@ -14,6 +16,32 @@ trainTAN <- function(data) {
   conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
   classesProb <- calculateClassProbabilities(data[ncol(data)])
   return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
+}
+
+# Train NB (Naive Bayes) model on given data
+#
+# Arguments:
+#   data <- training data (last column contains class value)
+#
+# Return: trained NB model
+#
+trainNB <- function(data) {
+  return(naiveBayes(x = data[, 1:(ncol(data)-1)], y = data[, ncol(data)], laplace = 1))
+}
+
+
+# Train CTree model on given data
+#
+# Arguments:
+#   data <- training data (last column contains class value)
+#
+# Return: trained CTree model
+#
+trainCTREE <- function(data) {
+  data[ncol(data)] <- as.factor(data[,ncol(data)])
+  classCol <- colnames(data[ncol(data)])
+  FORMULA <- as.formula(paste(classCol, " ~ ."))
+  return (ctree(FORMULA, data))
 }
 
 MST <- function(df){
@@ -98,7 +126,7 @@ testTAN <- function(data, model) {
   predicted <- NULL
   real <- NULL
   for (i in 1:(nrow(data))) {
-    predictedClass <- predict(data = data[i, 1:(ncol(data) - 1)], model = model)
+    predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
     predicted <- append(predicted, predictedClass)
     real <- append(real, data[i, ncol(data)])
   }
@@ -110,6 +138,54 @@ testTAN <- function(data, model) {
   return (c(acc, acc2))
 }
 
+# Method to test NB model on gien data
+#
+# Arguments:
+#   data -> test data
+#   model -> trained NB model
+#
+# Return: todo add more metrics
+#
+testNB <- function(data, model) {
+  predicted <- NULL
+  real <- NULL
+  for (i in 1:(nrow(data))) {
+    predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
+    predicted <- append(predicted, predictedClass)
+    real <- append(real, data[i, ncol(data)])
+  }
+  real <- data[,ncol(data)]
+
+  acc <- calc_acc(list("pred" = predicted, "real" = real))
+  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
+
+  return(c(acc, acc2))
+}
+
+# Method to test CTREE model on gien data
+#
+# Arguments:
+#   data -> test data
+#   model -> trained CTREE model
+#
+# Return: todo add more metrics
+#
+testCTREE <- function(data, model) {
+  predicted <- NULL
+  real <- NULL
+  for (i in 1:(nrow(data))) {
+    predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
+    predicted <- append(predicted, predictedClass)
+    real <- append(real, data[i, ncol(data)])
+  }
+  real <- data[,ncol(data)]
+
+  acc <- calc_acc(list("pred" = predicted, "real" = real))
+  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
+
+  return(c(acc, acc2))
+}
+
 # Predict class for given attributes values based on given model
 #
 # Arguments:
@@ -118,10 +194,36 @@ testTAN <- function(data, model) {
 #
 # Return: best matching class for given attributes values
 #
-predict <- function(data, model) {
+predictTAN <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
                         classProbabilities = model$classesProb)
   return(prediction[which.max(prediction$predictedProb),]$class)
+}
+
+# Predict class for given attributes values based on given model
+#
+# Arguments:
+#   data <- attributes values
+#   model <- NB model
+#
+# Return: best matching class for given attributes values
+#
+predictNB <- function(data, model) {
+  prediction <- stats::predict(object = model, newdata = data, type = "raw")
+  return(as.numeric(colnames(prediction)[apply(prediction, 1, which.max)]))
+}
+
+# Predict class for given attributes values based on given model
+#
+# Arguments:
+#   data <- attributes values
+#   model <- CTREE model
+#
+# Return: predicted class for given attributes values
+#
+predictCTREE <- function(data, model) {
+  predictedClass <- stats::predict(object = model, newdata =  data, type = "response")
+  return(predictedClass)
 }
 
 calc_acc <- function(list_pred_real){
