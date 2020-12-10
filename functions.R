@@ -103,36 +103,11 @@ direct_tree <- function(tree){
 # discretize column "V1" in dataframe "data", bins = 5
 # discretize(data$V1, disc="equalwidth", nbins = 5)
 discretize_dataset <- function(data, dataset_name){
-  if (dataset_name == "cmc"){
-    discretize(data$V1, disc="equalwidth", nbins = 5)   # age
-  } else if(dataset_name == "diabetes"){
-    discretize(data$V1, disc="equalwidth", nbins = 5)   # pregnancies
-    discretize(data$V2, disc="equalwidth", nbins = 10)  # glucose
-    discretize(data$V3, disc="equalwidth", nbins = 10)  # blood pressure
-    discretize(data$V4, disc="equalwidth", nbins = 5)   # skin thickness
-    discretize(data$V5, disc="equalwidth", nbins = 10)  # insulin
-    discretize(data$V6, disc="equalwidth", nbins = 5)   # bmi
-    discretize(data$V7, disc="equalwidth", nbins = 5)   # diabetes pedigree
-    discretize(data$V8, disc="equalwidth", nbins = 5)   # age
-  } else if(dataset_name == "occupancy"){
-
-  } else if(dataset_name == "wine"){
-    discretize(data$V1, disc="equalwidth", nbins = 5)
-    discretize(data$V2, disc="equalwidth", nbins = 5)
-    discretize(data$V3, disc="equalwidth", nbins = 5)
-    discretize(data$V4, disc="equalwidth", nbins = 5)
-    discretize(data$V5, disc="equalwidth", nbins = 5)
-    discretize(data$V6, disc="equalwidth", nbins = 5)
-    discretize(data$V7, disc="equalwidth", nbins = 5)
-    discretize(data$V8, disc="equalwidth", nbins = 5)
-    discretize(data$V9, disc="equalwidth", nbins = 5)
-    discretize(data$V10, disc="equalwidth", nbins = 5)
-    discretize(data$V11, disc="equalwidth", nbins = 5)
-    discretize(data$V12, disc="equalwidth", nbins = 5)
-  }
-
+  for (i in 1:(ncol(data) - 1))
+    data[,i] <- discretize(data[,i], disc="equalwidth", nbins = 2)
   return (data)
 }
+
 
 split_dataset <- function(data, train_size){
   bound <- floor(nrow(data) * train_size)

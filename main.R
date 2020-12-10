@@ -41,7 +41,7 @@ save <- function(dataset, results, method){
 }
 
 main <- function(){
-  datasets <- c("cmc", "zoo", "diabetes", "occupancy", "wine")
+  datasets <- c("cmc", "occupancy", "diabetes", "wine", "zoo")
   #algorithms <- c("TAN", "NB", "CTREE")
   algorithms <- c("TAN", "NB")
   for (dataset in datasets){
@@ -51,9 +51,6 @@ main <- function(){
       model <- train(splitted_data$train, algorithm)
       results <- test(splitted_data$test, model, algorithm)
       save(dataset, results, algorithm)
-    }
-    if (dataset == "diabetes"){ # todo remove it later
-      break
     }
   }
 }
