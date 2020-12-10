@@ -223,8 +223,10 @@ predictClasses <- function(args, tree, contionalProbabilities, classProbabilitie
   classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
   columns <- c("class", "predictedProb")
   colnames(classesPrediction) <- columns
+
+  defaultProb <- getDefaultProb(contionalProbabilities)
   for (c in unique(classProbabilities$class)) {
-    classProbability <- predictClass(c, args, tree, contionalProbabilities, classProbabilities)
+    classProbability <- predictClass(c, args, tree, contionalProbabilities, classProbabilities, defaultProb)
     classPrediction <- data.frame(c, classProbability)
     colnames(classPrediction) <- columns
     classesPrediction <- rbind(classesPrediction, classPrediction)
