@@ -1,5 +1,5 @@
 library(e1071)
-library(party)
+#library(party)
 source("probabilities.R")
 
 # Train TAN model on given data
@@ -100,11 +100,14 @@ direct_tree <- function(tree){
   return(data.frame(results_atr1, results_atr2, results_I))
 }
 
+# discretize column "V1" in dataframe "data", bins = 5
+# discretize(data$V1, disc="equalwidth", nbins = 5)
 discretize_dataset <- function(data, dataset_name){
-  # discretize column "V1" in dataframe "data", bins = 5
-  # data$V1 <- discretize(data$V1, disc="equalwidth", nbins = 5)
-  return (data) # todo fix it
+  for (i in 1:(ncol(data) - 1))
+    data[,i] <- discretize(data[,i], disc="equalwidth", nbins = 2)
+  return (data)
 }
+
 
 split_dataset <- function(data, train_size){
   bound <- floor(nrow(data) * train_size)

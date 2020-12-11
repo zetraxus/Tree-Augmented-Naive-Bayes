@@ -61,13 +61,18 @@ calculateCondProbWithLaplaceCorrectionForRoot <- function(r, c, rootClass) {
 #
 # Return: probability of given class for given attributes values
 #
-predictClass <- function (class, args, tree, contionalProbabilities, classProbabilities) {
+predictClass <- function (class, args, tree, contionalProbabilities, classProbabilities, defaultProb) {
   contionalProbForClass <- contionalProbabilities %>% filter(classVal == class)
   classProbability <- classProbabilities[classProbabilities$class == class, ]$prob
+
   rootAtrNum <- tree[1,]$results_atr1
   rootAtrVal <- args[1, rootAtrNum]
   rootProbRow <- contionalProbForClass %>% filter(atrNum == rootAtrNum) %>% filter(atrVal == rootAtrVal)
-  classProbability <- classProbability * rootProbRow$probability
+  rootProb <- rootProbRow$probability
+  if (isEmpty(rootProbRow)) {
+    rootProb <- defaultProb
+  }
+  classProbability <- classProbability * rootProb
 
   for(row in seq_len(nrow(tree))) {
     parent <- tree[row,]$results_atr1
@@ -75,8 +80,27 @@ predictClass <- function (class, args, tree, contionalProbabilities, classProbab
     pValue <- args[1, parent]
     atrValue <- args[1, atr]
     conditionalProbRow <- contionalProbForClass %>% filter(atrNum == atr)  %>% filter(atrVal == atrValue) %>% filter(parentVal == pValue)
-    classProbability <- classProbability * conditionalProbRow$probability
+    conditionalProb <- conditionalProbRow$probability
+    if (isEmpty(conditionalProbRow)) {
+      conditionalProb <- defaultProb
+    }
+    classProbability <- classProbability * conditionalProb
   }
 
   return(classProbability)
+}
+
+
+# Return default probability
+#
+getDefaultProb <- function(contionalProb) {
+  minProb <- contionalProb[which.min(contionalProb$probability),]$probability
+  return(minProb / 10)
+}
+
+# Check whether object is empty
+#
+# Return true if object is empty
+isEmpty <- function(x) {
+  return(nrow(x) == 0)
 }
