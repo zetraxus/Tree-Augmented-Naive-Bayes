@@ -24,20 +24,9 @@ train <- function(data, method){
   }
 }
 
-test <- function(data, model, method){
-  if (method == "TAN"){
-    return(testTAN(data, model))
-  } else if (method == "NB") {
-    return(testNB(data, model))
-  } else if (method == "CTREE") {
-    return(testCTREE(data, model))
-  }
-}
-
 save <- function(dataset, results, method){
   print(paste(dataset, method))
-  for(i in seq_along(results))
-    print(results[i])
+  cat(paste(round(as.numeric(results), 2)), sep="\n")
 }
 
 main <- function(){

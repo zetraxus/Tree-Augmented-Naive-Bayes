@@ -29,7 +29,6 @@ trainNB <- function(data) {
   return(naiveBayes(x = data[, 1:(ncol(data)-1)], y = data[, ncol(data)], laplace = 1))
 }
 
-
 # Train CTree model on given data
 #
 # Arguments:
@@ -108,7 +107,6 @@ discretize_dataset <- function(data, dataset_name){
   return (data)
 }
 
-
 split_dataset <- function(data, train_size){
   bound <- floor(nrow(data) * train_size)
   #data <- data[sample(nrow(data)), ] #sample rows
@@ -117,72 +115,21 @@ split_dataset <- function(data, train_size){
   return (list("train" = data.train, "test" = data.test))
 }
 
-# Method to test TAN model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained TAN model
-#
-# Return: todo add more metrics
-#
-testTAN <- function(data, model) {
+test <- function(data, model, algorithm){
   predicted <- NULL
   real <- NULL
   for (i in 1:(nrow(data))) {
-    predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
+    if (algorithm == "TAN")
+      predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
+    else if(algorithm == "NB")
+      predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
+    else if(algorithm == "CTREE")
+      predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
     predicted <- append(predicted, predictedClass)
     real <- append(real, data[i, ncol(data)])
   }
 
   return (calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
-}
-
-# Method to test NB model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained NB model
-#
-# Return: todo add more metrics
-#
-testNB <- function(data, model) {
-  predicted <- NULL
-  real <- NULL
-  for (i in 1:(nrow(data))) {
-    predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
-    predicted <- append(predicted, predictedClass)
-    real <- append(real, data[i, ncol(data)])
-  }
-  real <- data[,ncol(data)]
-
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return(c(acc, acc2))
-}
-
-# Method to test CTREE model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained CTREE model
-#
-# Return: todo add more metrics
-#
-testCTREE <- function(data, model) {
-  predicted <- NULL
-  real <- NULL
-  for (i in 1:(nrow(data))) {
-    predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
-    predicted <- append(predicted, predictedClass)
-    real <- append(real, data[i, ncol(data)])
-  }
-  real <- data[,ncol(data)]
-
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return(c(acc, acc2))
 }
 
 # Predict class for given attributes values based on given model
@@ -193,6 +140,7 @@ testCTREE <- function(data, model) {
 #
 # Return: best matching class for given attributes values
 #
+
 predictTAN <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
                         classProbabilities = model$classesProb)
@@ -207,6 +155,7 @@ predictTAN <- function(data, model) {
 #
 # Return: best matching class for given attributes values
 #
+
 predictNB <- function(data, model) {
   prediction <- stats::predict(object = model, newdata = data, type = "raw")
   return(as.numeric(colnames(prediction)[apply(prediction, 1, which.max)]))
@@ -220,6 +169,7 @@ predictNB <- function(data, model) {
 #
 # Return: predicted class for given attributes values
 #
+
 predictCTREE <- function(data, model) {
   predictedClass <- stats::predict(object = model, newdata =  data, type = "response")
   return(predictedClass)
