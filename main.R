@@ -15,22 +15,21 @@ preprocess_data <- function(dataset){
 }
 
 train <- function(data, method){
-  if (method == "TAN"){
+  if (method == "TAN")
     return(trainTAN(data))
-  } else if (method == "NB") {
+  else if (method == "NB")
     return(trainNB(data))
-  } else if (method == "CTREE") {
+  else if (method == "CTREE")
     return(trainCTREE(data))
-  }
 }
 
 save <- function(dataset, results, method){
-  print(paste(dataset, method))
+  cat(paste(dataset, method), sep="\n")
   cat(paste(round(as.numeric(results), 2)), sep="\n")
 }
 
 main <- function(){
-  datasets <- c("cmc", "occupancy", "diabetes", "wine", "zoo")
+  datasets <- c("cmc", "diabetes", "zoo", "occupancy", "wine")
   #algorithms <- c("TAN", "NB", "CTREE")
   algorithms <- c("TAN", "NB")
   for (dataset in datasets){

@@ -182,19 +182,24 @@ calc_prec_recall_f1 <- function(list_pred_real){
   predicted <- rep(0, length(real_unique_values))
   real <- rep(0, length(real_unique_values))
 
-  for(i in seq(list_pred_real$real)){
-    if(list_pred_real$real[i] == list_pred_real$pred[i]){
-      true_positive[list_pred_real$real[i]] <- true_positive[list_pred_real$real[i]] + 1
+  idx <- 1
+  for(i in real_unique_values){
+    for(j in seq_along(list_pred_real$pred)){
+      if(list_pred_real$real[j] == i & list_pred_real$pred[j] == i)
+        true_positive[idx] <- true_positive[idx] + 1
+      if(list_pred_real$real[j] == i)
+        real[idx] <- real[idx] + 1
+      if(list_pred_real$pred[j] == i)
+        predicted[idx] <- predicted[idx] + 1
     }
-    predicted[list_pred_real$pred[i]] <- predicted[list_pred_real$pred[i]] + 1
-    real[list_pred_real$real[i]] <- real[list_pred_real$real[i]] + 1
+    idx <- idx + 1
   }
 
   precision <- rep(0, length(real_unique_values))
   recall <- rep(0, length(real_unique_values))
   f1_score <- rep(0, length(real_unique_values))
 
-  for(i in seq(real_unique_values)){
+  for(i in length(real_unique_values)){
     precision[i] <- true_positive[i] / predicted[i]
     recall[i] <- true_positive[i] / real[i]
     f1_score[i] <- 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
@@ -207,7 +212,7 @@ calc_prec_recall_f1 <- function(list_pred_real){
   recall_weighted <- 0
   f1_score_weighted <- 0
 
-  for(i in seq(real_unique_values)){
+  for(i in length(real_unique_values)){
     precision_avg <- precision_avg + (precision[i] / length(real_unique_values))
     recall_avg <- recall_avg + (recall[i] / length(real_unique_values))
     f1_score_avg <- f1_score_avg + (f1_score[i] / length(real_unique_values))
