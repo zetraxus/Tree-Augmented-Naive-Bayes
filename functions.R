@@ -134,11 +134,7 @@ testTAN <- function(data, model) {
     real <- append(real, data[i, ncol(data)])
   }
 
-  # todo add more metrics
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return (c(acc, acc2))
+  return (calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
 }
 
 # Method to test NB model on gien data
@@ -229,9 +225,46 @@ predictCTREE <- function(data, model) {
   return(predictedClass)
 }
 
-calc_acc <- function(list_pred_real){
-  df_pred_real <- data.frame(list_pred_real)
-  correct <- df_pred_real %>% filter(pred == real) %>% nrow()
-  acc <- correct / nrow(df_pred_real)
-  return (acc)
+calc_prec_recall_f1 <- function(list_pred_real){
+  real_unique_values <- unique(list_pred_real$real)
+
+  true_positive <- rep(0, length(real_unique_values))
+  predicted <- rep(0, length(real_unique_values))
+  real <- rep(0, length(real_unique_values))
+
+  for(i in seq(list_pred_real$real)){
+    if(list_pred_real$real[i] == list_pred_real$pred[i]){
+      true_positive[list_pred_real$real[i]] <- true_positive[list_pred_real$real[i]] + 1
+    }
+    predicted[list_pred_real$pred[i]] <- predicted[list_pred_real$pred[i]] + 1
+    real[list_pred_real$real[i]] <- real[list_pred_real$real[i]] + 1
+  }
+
+  precision <- rep(0, length(real_unique_values))
+  recall <- rep(0, length(real_unique_values))
+  f1_score <- rep(0, length(real_unique_values))
+
+  for(i in seq(real_unique_values)){
+    precision[i] <- true_positive[i] / predicted[i]
+    recall[i] <- true_positive[i] / real[i]
+    f1_score[i] <- 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+  }
+
+  precision_avg <- 0
+  recall_avg <- 0
+  f1_score_avg <- 0
+  precision_weighted <- 0
+  recall_weighted <- 0
+  f1_score_weighted <- 0
+
+  for(i in seq(real_unique_values)){
+    precision_avg <- precision_avg + (precision[i] / length(real_unique_values))
+    recall_avg <- recall_avg + (recall[i] / length(real_unique_values))
+    f1_score_avg <- f1_score_avg + (f1_score[i] / length(real_unique_values))
+
+    precision_weighted <- precision_weighted + precision[i] * (real[i] / sum(real))
+    recall_weighted <- recall_weighted + recall[i] * (real[i] / sum(real))
+    f1_score_weighted <- f1_score_weighted + f1_score[i] * (real[i] / sum(real))
+  }
+  return (list("prec_avg" = precision_avg, "rec_avg" = recall_avg, "f1_avg" = f1_score_avg, "prec_w" = precision_weighted, "rec_w" = recall_weighted, "f1_w" = f1_score_weighted))
 }

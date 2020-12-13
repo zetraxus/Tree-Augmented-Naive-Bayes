@@ -56,7 +56,3 @@ main <- function(){
 }
 
 main()
-
-# todo
-# funkcja testujaca i zapisujaca wyniki
-# funkcja podsumowujaca wyniki eksperymentow
