@@ -29,7 +29,6 @@ trainNB <- function(data) {
   return(naiveBayes(x = data[, 1:(ncol(data)-1)], y = data[, ncol(data)], laplace = 1))
 }
 
-
 # Train CTree model on given data
 #
 # Arguments:
@@ -108,7 +107,6 @@ discretize_dataset <- function(data, dataset_name){
   return (data)
 }
 
-
 split_dataset <- function(data, train_size){
   bound <- floor(nrow(data) * train_size)
   #data <- data[sample(nrow(data)), ] #sample rows
@@ -117,76 +115,21 @@ split_dataset <- function(data, train_size){
   return (list("train" = data.train, "test" = data.test))
 }
 
-# Method to test TAN model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained TAN model
-#
-# Return: todo add more metrics
-#
-testTAN <- function(data, model) {
+test <- function(data, model, algorithm){
   predicted <- NULL
   real <- NULL
   for (i in 1:(nrow(data))) {
-    predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
+    if (algorithm == "TAN")
+      predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
+    else if(algorithm == "NB")
+      predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
+    else if(algorithm == "CTREE")
+      predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
     predicted <- append(predicted, predictedClass)
     real <- append(real, data[i, ncol(data)])
   }
 
-  # todo add more metrics
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return (c(acc, acc2))
-}
-
-# Method to test NB model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained NB model
-#
-# Return: todo add more metrics
-#
-testNB <- function(data, model) {
-  predicted <- NULL
-  real <- NULL
-  for (i in 1:(nrow(data))) {
-    predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
-    predicted <- append(predicted, predictedClass)
-    real <- append(real, data[i, ncol(data)])
-  }
-  real <- data[,ncol(data)]
-
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return(c(acc, acc2))
-}
-
-# Method to test CTREE model on gien data
-#
-# Arguments:
-#   data -> test data
-#   model -> trained CTREE model
-#
-# Return: todo add more metrics
-#
-testCTREE <- function(data, model) {
-  predicted <- NULL
-  real <- NULL
-  for (i in 1:(nrow(data))) {
-    predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
-    predicted <- append(predicted, predictedClass)
-    real <- append(real, data[i, ncol(data)])
-  }
-  real <- data[,ncol(data)]
-
-  acc <- calc_acc(list("pred" = predicted, "real" = real))
-  acc2 <- calc_acc(list("pred" = predicted, "real" = real))
-
-  return(c(acc, acc2))
+  return (calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
 }
 
 # Predict class for given attributes values based on given model
@@ -197,6 +140,7 @@ testCTREE <- function(data, model) {
 #
 # Return: best matching class for given attributes values
 #
+
 predictTAN <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
                         classProbabilities = model$classesProb)
@@ -211,6 +155,7 @@ predictTAN <- function(data, model) {
 #
 # Return: best matching class for given attributes values
 #
+
 predictNB <- function(data, model) {
   prediction <- stats::predict(object = model, newdata = data, type = "raw")
   return(as.numeric(colnames(prediction)[apply(prediction, 1, which.max)]))
@@ -224,14 +169,66 @@ predictNB <- function(data, model) {
 #
 # Return: predicted class for given attributes values
 #
+
 predictCTREE <- function(data, model) {
   predictedClass <- stats::predict(object = model, newdata =  data, type = "response")
   return(predictedClass)
 }
 
-calc_acc <- function(list_pred_real){
-  df_pred_real <- data.frame(list_pred_real)
-  correct <- df_pred_real %>% filter(pred == real) %>% nrow()
-  acc <- correct / nrow(df_pred_real)
-  return (acc)
+calc_prec_recall_f1 <- function(list_pred_real){
+  real_unique_values <- unique(list_pred_real$real)
+
+  true_positive <- rep(0, length(real_unique_values))
+  predicted <- rep(0, length(real_unique_values))
+  real <- rep(0, length(real_unique_values))
+
+  idx <- 1
+  for(i in real_unique_values){
+    for(j in seq_along(list_pred_real$pred)){
+      if(list_pred_real$real[j] == i & list_pred_real$pred[j] == i)
+        true_positive[idx] <- true_positive[idx] + 1
+      if(list_pred_real$real[j] == i)
+        real[idx] <- real[idx] + 1
+      if(list_pred_real$pred[j] == i)
+        predicted[idx] <- predicted[idx] + 1
+    }
+    idx <- idx + 1
+  }
+
+  precision <- rep(0, length(real_unique_values))
+  recall <- rep(0, length(real_unique_values))
+  f1_score <- rep(0, length(real_unique_values))
+
+  for(i in seq_along(real_unique_values)){
+    if(predicted[i] == 0)
+      precision[i] <- 0
+    else
+      precision[i] <- true_positive[i] / predicted[i]
+    if(real[i] == 0)
+      recall[i] <- 0
+    else
+      recall[i] <- true_positive[i] / real[i]
+    if (precision[i] + recall[i] == 0)
+      f1_score[i] <- 0
+    else
+      f1_score[i] <- 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+  }
+
+  precision_avg <- 0
+  recall_avg <- 0
+  f1_score_avg <- 0
+  precision_weighted <- 0
+  recall_weighted <- 0
+  f1_score_weighted <- 0
+
+  for(i in seq_along(real_unique_values)){
+    precision_avg <- precision_avg + (precision[i] / length(real_unique_values))
+    recall_avg <- recall_avg + (recall[i] / length(real_unique_values))
+    f1_score_avg <- f1_score_avg + (f1_score[i] / length(real_unique_values))
+
+    precision_weighted <- precision_weighted + precision[i] * (real[i] / sum(real))
+    recall_weighted <- recall_weighted + recall[i] * (real[i] / sum(real))
+    f1_score_weighted <- f1_score_weighted + f1_score[i] * (real[i] / sum(real))
+  }
+  return (list("prec_avg" = precision_avg, "rec_avg" = recall_avg, "f1_avg" = f1_score_avg, "prec_w" = precision_weighted, "rec_w" = recall_weighted, "f1_w" = f1_score_weighted))
 }

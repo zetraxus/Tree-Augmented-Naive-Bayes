@@ -15,33 +15,21 @@ preprocess_data <- function(dataset){
 }
 
 train <- function(data, method){
-  if (method == "TAN"){
+  if (method == "TAN")
     return(trainTAN(data))
-  } else if (method == "NB") {
+  else if (method == "NB")
     return(trainNB(data))
-  } else if (method == "CTREE") {
+  else if (method == "CTREE")
     return(trainCTREE(data))
-  }
-}
-
-test <- function(data, model, method){
-  if (method == "TAN"){
-    return(testTAN(data, model))
-  } else if (method == "NB") {
-    return(testNB(data, model))
-  } else if (method == "CTREE") {
-    return(testCTREE(data, model))
-  }
 }
 
 save <- function(dataset, results, method){
-  print(paste(dataset, method))
-  for(i in seq_along(results))
-    print(results[i])
+  cat(paste(dataset, method), sep="\n")
+  cat(paste(round(as.numeric(results), 2)), sep="\n")
 }
 
 main <- function(){
-  datasets <- c("cmc", "occupancy", "diabetes", "wine", "zoo")
+  datasets <- c("cmc", "diabetes", "zoo", "occupancy", "wine")
   #algorithms <- c("TAN", "NB", "CTREE")
   algorithms <- c("TAN", "NB")
   for (dataset in datasets){
@@ -56,7 +44,3 @@ main <- function(){
 }
 
 main()
-
-# todo
-# funkcja testujaca i zapisujaca wyniki
-# funkcja podsumowujaca wyniki eksperymentow
