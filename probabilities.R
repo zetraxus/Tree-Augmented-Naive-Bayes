@@ -10,28 +10,28 @@ source("math.R")
 #  I   |  atr1  | atr2
 # -----|--------|------
 # 0.5  |   2    |   5
-#
+
 conditionalMutualInformation <- function(attributes, class) {
-    mutualInformations <- data.frame(matrix(ncol = 3, nrow = 0))
-    columns <- c("I", "atr1", "atr2")
-    colnames(mutualInformations) <- columns
-    for (i in 1:(ncol(attributes) - 1)) {
-        for (j in (i + 1):ncol(attributes)) {
-            atr1atr2class <- data.frame(matrix(ncol = 3, nrow = nrow(attributes)))
-            colnames(atr1atr2class) <- c("atr1", "atr2", "class")
-            atr1atr2class$atr1 <- attributes[,i]
-            atr1atr2class$atr2 <- attributes[,j]
-            atr1atr2class$class <- class
+  mutualInformations <- data.frame(matrix(ncol = 3, nrow = 0))
+  columns <- c("I", "atr1", "atr2")
+  colnames(mutualInformations) <- columns
+  for (i in 1:(ncol(attributes) - 1)) {
+    for (j in (i + 1):ncol(attributes)) {
+      atr1atr2class <- data.frame(matrix(ncol = 3, nrow = nrow(attributes)))
+      colnames(atr1atr2class) <- c("atr1", "atr2", "class")
+      atr1atr2class$atr1 <- attributes[, i]
+      atr1atr2class$atr2 <- attributes[, j]
+      atr1atr2class$class <- class
 
-            I <- condInformation(atr1atr2class)
+      I <- condInformation(atr1atr2class)
 
-            mutualInformation <- data.frame(I, i, j)
-            colnames(mutualInformation) <- columns
-            mutualInformations <- rbind(mutualInformations, mutualInformation)
-        }
+      mutualInformation <- data.frame(I, i, j)
+      colnames(mutualInformation) <- columns
+      mutualInformations <- rbind(mutualInformations, mutualInformation)
     }
+  }
 
-    return(mutualInformations)
+  return(mutualInformations)
 }
 
 # Calculate conditional mutual information for two attributes
@@ -39,20 +39,17 @@ conditionalMutualInformation <- function(attributes, class) {
 # Arguments:
 #   atr1atr2class <- table with values of first and second attribute and class
 #
-# Return: conditional mutual informatin for two attributes
-#
+# Return: conditional mutual information for two attributes
+
 condInformation <- function(atr1atr2class) {
-    condinformation <- 0.0
+  condinformation <- 0.0
 
-    for (i in unique(atr1atr2class$atr1)) {
-        for (j in unique(atr1atr2class$atr2)) {
-            for (c in unique(atr1atr2class$class)) {
-                condinformation <- condinformation + calculatePartialCondInformation(i, j, c, atr1atr2class)
-            }
-        }
-    }
+  for (i in unique(atr1atr2class$atr1))
+    for (j in unique(atr1atr2class$atr2))
+      for (c in unique(atr1atr2class$class))
+        condinformation <- condinformation + calculatePartialCondInformation(i, j, c, atr1atr2class)
 
-    return(condinformation)
+  return(condinformation)
 }
 
 # Calculate partial condtitional mutual information for given attributes and class values
@@ -63,28 +60,38 @@ condInformation <- function(atr1atr2class) {
 #   classVal <- value of class
 #   atr1atr2class <- table with values of first and second attribute and class from training data
 #
-# Return: partial condtitional mutual information for given attributes and class values
-#
+# Return: partial conditional mutual information for given attributes and class values
+
 calculatePartialCondInformation <- function(atr1Val, atr2Val, classVal, atr1atr2class) {
   rowsWithClass <- atr1atr2class %>% filter(class == classVal)
   numberOfrowsWithClass <- nrow(rowsWithClass)
-  numberOfRowsWithClassAndAtr1 <- rowsWithClass %>% filter(atr1 == atr1Val) %>% nrow()
-  numberOfRowsWithClassAndAtr2 <- rowsWithClass %>% filter(atr2 == atr2Val) %>% nrow()
-  numberOfRowsWithAtr1AndAtr2AndClass <- rowsWithClass %>% filter(atr1 == atr1Val) %>% filter(atr2 == atr2Val) %>% nrow()
+  numberOfRowsWithClassAndAtr1 <- rowsWithClass %>%
+    filter(atr1 == atr1Val) %>%
+    nrow()
+  numberOfRowsWithClassAndAtr2 <- rowsWithClass %>%
+    filter(atr2 == atr2Val) %>%
+    nrow()
+  numberOfRowsWithAtr1AndAtr2AndClass <- rowsWithClass %>%
+    filter(atr1 == atr1Val) %>%
+    filter(atr2 == atr2Val) %>%
+    nrow()
   multiProb <- (numberOfRowsWithAtr1AndAtr2AndClass / nrow(atr1atr2class))
   condProbAtr1Atr2 <- (numberOfRowsWithAtr1AndAtr2AndClass / numberOfrowsWithClass)
   condProbAtr1 <- (numberOfRowsWithClassAndAtr1 / numberOfrowsWithClass)
   condProbAtr2 <- (numberOfRowsWithClassAndAtr2 / numberOfrowsWithClass)
 
-  if (multiProb == 0 || condProbAtr1 == 0 || condProbAtr2 == 0 || condProbAtr1Atr2 == 0) {
+  if (multiProb == 0 ||
+    condProbAtr1 == 0 ||
+    condProbAtr2 == 0 ||
+    condProbAtr1Atr2 == 0) {
     partialCondInf <- 0.0
   } else {
     partialCondInf <- multiProb * (log((condProbAtr1Atr2 / (condProbAtr1 * condProbAtr2)), 2))
   }
+  # todo return.. ?
 }
 
-
-# Calculate conditional probabilities for every node form tree
+# Calculate conditional probabilities for every node from tree
 #
 # Arguments:
 #   tree <- directed TAN tree
@@ -96,21 +103,21 @@ calculatePartialCondInformation <- function(atr1Val, atr2Val, classVal, atr1atr2
 # ----------|----------|------------|------------|-------------
 #    1      |    15    |    NA      |     2      |   0.7
 #    2      |    7     |    15      |     2      |   0.3
-#
-calculateConditionalProbabilities <- function (tree, args, class) {
+
+calculateConditionalProbabilities <- function(tree, args, class) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
   rootAtr <- tree[1,]$results_atr1
-  rootClass <- data.frame(args[,rootAtr], class)
+  rootClass <- data.frame(args[, rootAtr], class)
   colnames(rootClass) <- c("root", "class")
   probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForRoot(rootAtr, rootClass))
 
-  for(row in seq_len(nrow(tree))) {
+  for (row in seq_len(nrow(tree))) {
     atrNum <- tree[row,]$results_atr2
     parentNum <- tree[row,]$results_atr1
-    atrParentClass <- data.frame(args[,atrNum], args[,parentNum], class)
+    atrParentClass <- data.frame(args[, atrNum], args[, parentNum], class)
     colnames(atrParentClass) <- c("atr", "parent", "class")
     probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForAtribute(atrNum, atrParentClass))
   }
@@ -129,7 +136,7 @@ calculateConditionalProbabilities <- function (tree, args, class) {
 # ----------|----------|------------|------------|-------------
 #    2      |    1     |    15      |     2      |   0.7
 #    2      |    2     |    15      |     2      |   0.3
-#
+
 calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
@@ -138,7 +145,6 @@ calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass)
   for (a in unique(atrParentClass$atr)) {
     for (p in unique(atrParentClass$parent)) {
       for (c in unique(atrParentClass$class)) {
-
         conditionalProbability <- data.frame(atrNum, a, p, c, calculateCondProbWithLaplaceCorrectionForAtr(a, p, c, atrParentClass))
         colnames(conditionalProbability) <- columns
         probabilities <- rbind(probabilities, conditionalProbability)
@@ -160,13 +166,13 @@ calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass)
 # ----------|----------|------------|------------|-------------
 #    1      |    1     |    NA      |     2      |   0.7
 #    1      |    2     |    NA      |     2      |   0.3
-#
+
 calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
-  for(r in unique(rootClass$root)) {
+  for (r in unique(rootClass$root)) {
     for (c in unique(rootClass$class)) {
       conditionalProbability <- data.frame(rootNum, r, NA, c, calculateCondProbWithLaplaceCorrectionForRoot(r, c, rootClass))
       colnames(conditionalProbability) <- columns
@@ -189,7 +195,7 @@ calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
 #     1    |     0.2
 #     2    |     0.3
 #     3    |     0.5
-#
+
 calculateClassProbabilities <- function(classes) {
   colnames(classes) <- "class"
   probabilities <- data.frame(matrix(ncol = 2, nrow = 0))
@@ -209,7 +215,7 @@ calculateClassProbabilities <- function(classes) {
 # Arguments:
 #   args <- arguments values
 #   tree <- maximum spanning tree for TAN model
-#   contionalProbabilities <- conditional probabilities for every node in tree
+#   conditionalProbabilities <- conditional probabilities for every node in tree
 #   classProbabilities <- probabilities of every class from training data
 #
 # Example return:
@@ -218,7 +224,7 @@ calculateClassProbabilities <- function(classes) {
 #     1    |     0.2
 #     2    |     0.3
 #     3    |     0.5
-#
+
 predictClasses <- function(args, tree, contionalProbabilities, classProbabilities) {
   classesPrediction <- data.frame(matrix(ncol = 2, nrow = 0))
   columns <- c("class", "predictedProb")
