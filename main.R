@@ -6,10 +6,10 @@ library(infotheo)
 source("functions.R")
 source("probabilities.R")
 
-preprocess_data <- function(dataset) {
+preprocess_data <- function(dataset, discretize_bins) {
   dataset_filename <- gsub(" ", "", paste("data/", dataset, ".csv"))
   data <- read.csv(file = dataset_filename, header = FALSE)
-  data <- discretize_data(data)
+  data <- discretize_data(data, discretize_bins)
   splitted_data <- split_dataset(data, 0.8)
   return(splitted_data)
 }
@@ -39,23 +39,30 @@ test <- function(data, model, algorithm) {
   return(calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
 }
 
-save <- function(dataset, results, method) {
-  cat(paste(dataset, method), sep = "\n")
-  cat(paste(round(as.numeric(results), 2)), sep = "\n")
+save <- function(dataset, results, method, bins) {
+  output_filename <- gsub(" ", "", paste("results/", bins))
+  cat(paste(dataset, method), file=output_filename, sep = "\n", append=TRUE)
+  cat(paste(round(as.numeric(results), 2)), file=output_filename, sep = "\n",append=TRUE)
 }
 
 main <- function() {
-  datasets <- c("cmc", "diabetes", "zoo", "occupancy", "wine")
+  datasets <- c("zoo", "cmc", "diabetes", "occupancy", "wine")
   #algorithms <- c("TAN", "NB", "CTREE")
   algorithms <- c("TAN", "NB")
-  for (dataset in datasets) {
-    splitted_data <- preprocess_data(dataset)
-    for (algorithm in algorithms) {
-      print(Sys.time())
-      model <- train(splitted_data$train, algorithm)
-      results <- test(splitted_data$test, model, algorithm)
-      save(dataset, results, algorithm)
+
+  t_all_start <- Sys.time()
+  for(bins in seq(from = 2, to = 6)){
+    for (dataset in datasets) {
+      t_start <- Sys.time()
+      splitted_data <- preprocess_data(dataset, bins)
+      for (algorithm in algorithms) {
+        model <- train(splitted_data$train, algorithm)
+        results <- test(splitted_data$test, model, algorithm)
+        save(dataset, results, algorithm, bins)
+      }
+      print(Sys.time() - t_start)
     }
+    print(Sys.time() - t_all_start)
   }
 }
 

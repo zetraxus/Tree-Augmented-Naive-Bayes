@@ -103,9 +103,9 @@ direct_tree <- function(tree) {
 # discretize column "V1" in dataframe "data", bins = 5
 # discretize(data$V1, disc="equalwidth", nbins = 5)
 
-discretize_data <- function(data) {
+discretize_data <- function(data, bins) {
   for (i in 1:(ncol(data) - 1))
-    data[, i] <- discretize(data[, i], disc = "equalwidth", nbins = 2)
+    data[, i] <- discretize(data[, i], disc = "equalwidth", nbins = bins)
   return(data)
 }
 
