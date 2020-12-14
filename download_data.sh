@@ -15,8 +15,8 @@ sed -i '1d' data/wine.csv
 sed -i 's/;/,/g' data/wine.csv
 
 unzip data/occupancy.zip -d data/
+sed -i '1d' data/*.txt
 cat data/*.txt >> data/occupancy.csv
-sed -i '1d' data/occupancy.csv
 rm data/*.txt
 rm data/occupancy.zip
 cut -d, -f1-2 --complement data/occupancy.csv >> data/occupancy_temp.csv

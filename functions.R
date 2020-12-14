@@ -8,12 +8,12 @@ source("probabilities.R")
 #   data <- training data (last column contains class value)
 #
 # Return: trained TAN model
-#
+
 trainTAN <- function(data) {
-  I <- conditionalMutualInformation(data[, 1:(ncol(data)-1)], data[, ncol(data)])
+  I <- conditionalMutualInformation(data[, 1:(ncol(data) - 1)], data[, ncol(data)])
   mst_undirected_tree <- MST(I)
   mst_directed_tree <- direct_tree(mst_undirected_tree)
-  conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data)-1)], class = data[, ncol(data)])
+  conditionalProbabilities <- calculateConditionalProbabilities(tree = mst_directed_tree, args = data[, 1:(ncol(data) - 1)], class = data[, ncol(data)])
   classesProb <- calculateClassProbabilities(data[ncol(data)])
   return(list("tree" = mst_directed_tree, "condtionalProb" = conditionalProbabilities, "classesProb" = classesProb))
 }
@@ -24,9 +24,9 @@ trainTAN <- function(data) {
 #   data <- training data (last column contains class value)
 #
 # Return: trained NB model
-#
+
 trainNB <- function(data) {
-  return(naiveBayes(x = data[, 1:(ncol(data)-1)], y = data[, ncol(data)], laplace = 1))
+  return(naiveBayes(x = data[, 1:(ncol(data) - 1)], y = data[, ncol(data)], laplace = 1))
 }
 
 # Train CTree model on given data
@@ -35,30 +35,30 @@ trainNB <- function(data) {
 #   data <- training data (last column contains class value)
 #
 # Return: trained CTree model
-#
+
 trainCTREE <- function(data) {
-  data[ncol(data)] <- as.factor(data[,ncol(data)])
+  data[ncol(data)] <- as.factor(data[, ncol(data)])
   classCol <- colnames(data[ncol(data)])
   FORMULA <- as.formula(paste(classCol, " ~ ."))
-  return (ctree(FORMULA, data))
+  return(ctree(FORMULA, data))
 }
 
-MST <- function(df){
+MST <- function(df) {
   df <- df[order(-df$I),]
-  atr1_vec <- vector()
-  atr2_vec <- vector()
-  I_vec <- vector()
+  atr1_vec <- NULL
+  atr2_vec <- NULL
+  I_vec <- NULL
   conn_comp <- seq(from = 1, to = max(df$atr2))
 
-  for(i in seq_len(nrow(df))) {
+  for (i in seq_len(nrow(df))) {
     row <- df[i,]
-    if (conn_comp[row$atr1] != conn_comp[row$atr2]){
+    if (conn_comp[row$atr1] != conn_comp[row$atr2]) {
       atr1_vec <- append(atr1_vec, row$atr1)
       atr2_vec <- append(atr2_vec, row$atr2)
       I_vec <- append(I_vec, row$I)
 
       conn_comp_atr1 <- conn_comp[row$atr1]
-      for (j in seq_along(conn_comp)){
+      for (j in seq_along(conn_comp)) {
         if (conn_comp[j] == conn_comp_atr1)
           conn_comp[j] <- conn_comp[row$atr2]
       }
@@ -68,68 +68,53 @@ MST <- function(df){
   return(data.frame(atr1_vec, atr2_vec, I_vec))
 }
 
-direct_tree <- function(tree){
+direct_tree <- function(tree) {
   added_to_queue <- integer(max(tree$atr2))
   start_node <- sample(1:(max(tree$atr2)), 1)
   queue <- start_node
   results_atr1 <- NULL
   results_atr2 <- NULL
   results_I <- NULL
-  while (length(queue) !=0){
+  while (length(queue) != 0) {
     atr <- head(queue, 1)
     queue <- tail(queue, length(queue) - 1)
     added_to_queue[atr] <- 1
     for (row in seq_len(nrow(tree))) {
-      if (tree[row, "atr1_vec"] == atr && added_to_queue[tree[row, "atr2_vec"]] == 0){
+      if (tree[row, "atr1_vec"] == atr && added_to_queue[tree[row, "atr2_vec"]] == 0) {
         added_to_queue[tree[row, "atr2_vec"]] <- 1
         queue <- append(queue, tree[row, "atr2_vec"])
         results_atr1 <- append(results_atr1, atr)
         results_atr2 <- append(results_atr2, tree[row, "atr2_vec"])
         results_I <- append(results_I, tree[row, "I_vec"])
       }
-      if (tree[row, "atr2_vec"] == atr && added_to_queue[tree[row, "atr1_vec"]] == 0){
+      if (tree[row, "atr2_vec"] == atr && added_to_queue[tree[row, "atr1_vec"]] == 0) {
         added_to_queue[tree[row, "atr1_vec"]] <- 1
-        queue <- append(queue, tree[row, "atr1_vec"], after = length(queue))
-        results_atr1 <- append(results_atr1, atr, after = length(results_atr1))
-        results_atr2 <- append(results_atr2, tree[row, "atr1_vec"], after = length(results_atr2))
+        queue <- append(queue, tree[row, "atr1_vec"])
+        results_atr1 <- append(results_atr1, atr)
+        results_atr2 <- append(results_atr2, tree[row, "atr1_vec"])
         results_I <- append(results_I, tree[row, "I_vec"])
       }
     }
   }
+
   return(data.frame(results_atr1, results_atr2, results_I))
 }
 
 # discretize column "V1" in dataframe "data", bins = 5
 # discretize(data$V1, disc="equalwidth", nbins = 5)
-discretize_dataset <- function(data, dataset_name){
+
+discretize_data <- function(data, bins) {
   for (i in 1:(ncol(data) - 1))
-    data[,i] <- discretize(data[,i], disc="equalwidth", nbins = 2)
-  return (data)
+    data[, i] <- discretize(data[, i], disc = "equalwidth", nbins = bins)
+  return(data)
 }
 
-split_dataset <- function(data, train_size){
-  bound <- floor(nrow(data) * train_size)
+split_dataset <- function(data, train_size) {
   #data <- data[sample(nrow(data)), ] #sample rows
-  data.train <- data[1:bound, ]
-  data.test <- data[(bound+1):nrow(data), ]
-  return (list("train" = data.train, "test" = data.test))
-}
-
-test <- function(data, model, algorithm){
-  predicted <- NULL
-  real <- NULL
-  for (i in 1:(nrow(data))) {
-    if (algorithm == "TAN")
-      predictedClass <- predictTAN(data = data[i, 1:(ncol(data) - 1)], model = model)
-    else if(algorithm == "NB")
-      predictedClass <- predictNB(data[i, 1:(ncol(data) - 1)], model)
-    else if(algorithm == "CTREE")
-      predictedClass <- predictCTREE(data[i, 1:(ncol(data) - 1)], model)
-    predicted <- append(predicted, predictedClass)
-    real <- append(real, data[i, ncol(data)])
-  }
-
-  return (calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
+  bound <- floor(nrow(data) * train_size)
+  data.train <- data[1:bound,]
+  data.test <- data[(bound + 1):nrow(data),]
+  return(list("train" = data.train, "test" = data.test))
 }
 
 # Predict class for given attributes values based on given model
@@ -139,11 +124,10 @@ test <- function(data, model, algorithm){
 #   model <- TAN model
 #
 # Return: best matching class for given attributes values
-#
 
 predictTAN <- function(data, model) {
   prediction <- predictClasses(args = data, tree = model$tree, contionalProbabilities = model$condtionalProb,
-                        classProbabilities = model$classesProb)
+                               classProbabilities = model$classesProb)
   return(prediction[which.max(prediction$predictedProb),]$class)
 }
 
@@ -154,7 +138,6 @@ predictTAN <- function(data, model) {
 #   model <- NB model
 #
 # Return: best matching class for given attributes values
-#
 
 predictNB <- function(data, model) {
   prediction <- stats::predict(object = model, newdata = data, type = "raw")
@@ -168,14 +151,13 @@ predictNB <- function(data, model) {
 #   model <- CTREE model
 #
 # Return: predicted class for given attributes values
-#
 
 predictCTREE <- function(data, model) {
-  predictedClass <- stats::predict(object = model, newdata =  data, type = "response")
+  predictedClass <- stats::predict(object = model, newdata = data, type = "response")
   return(predictedClass)
 }
 
-calc_prec_recall_f1 <- function(list_pred_real){
+calc_prec_recall_f1 <- function(list_pred_real) {
   real_unique_values <- unique(list_pred_real$real)
 
   true_positive <- rep(0, length(real_unique_values))
@@ -183,13 +165,13 @@ calc_prec_recall_f1 <- function(list_pred_real){
   real <- rep(0, length(real_unique_values))
 
   idx <- 1
-  for(i in real_unique_values){
-    for(j in seq_along(list_pred_real$pred)){
-      if(list_pred_real$real[j] == i & list_pred_real$pred[j] == i)
+  for (i in real_unique_values) {
+    for (j in seq_along(list_pred_real$pred)) {
+      if (list_pred_real$real[j] == i & list_pred_real$pred[j] == i)
         true_positive[idx] <- true_positive[idx] + 1
-      if(list_pred_real$real[j] == i)
+      if (list_pred_real$real[j] == i)
         real[idx] <- real[idx] + 1
-      if(list_pred_real$pred[j] == i)
+      if (list_pred_real$pred[j] == i)
         predicted[idx] <- predicted[idx] + 1
     }
     idx <- idx + 1
@@ -199,12 +181,12 @@ calc_prec_recall_f1 <- function(list_pred_real){
   recall <- rep(0, length(real_unique_values))
   f1_score <- rep(0, length(real_unique_values))
 
-  for(i in seq_along(real_unique_values)){
-    if(predicted[i] == 0)
+  for (i in seq_along(real_unique_values)) {
+    if (predicted[i] == 0)
       precision[i] <- 0
     else
       precision[i] <- true_positive[i] / predicted[i]
-    if(real[i] == 0)
+    if (real[i] == 0)
       recall[i] <- 0
     else
       recall[i] <- true_positive[i] / real[i]
@@ -221,7 +203,7 @@ calc_prec_recall_f1 <- function(list_pred_real){
   recall_weighted <- 0
   f1_score_weighted <- 0
 
-  for(i in seq_along(real_unique_values)){
+  for (i in seq_along(real_unique_values)) {
     precision_avg <- precision_avg + (precision[i] / length(real_unique_values))
     recall_avg <- recall_avg + (recall[i] / length(real_unique_values))
     f1_score_avg <- f1_score_avg + (f1_score[i] / length(real_unique_values))
@@ -230,5 +212,6 @@ calc_prec_recall_f1 <- function(list_pred_real){
     recall_weighted <- recall_weighted + recall[i] * (real[i] / sum(real))
     f1_score_weighted <- f1_score_weighted + f1_score[i] * (real[i] / sum(real))
   }
-  return (list("prec_avg" = precision_avg, "rec_avg" = recall_avg, "f1_avg" = f1_score_avg, "prec_w" = precision_weighted, "rec_w" = recall_weighted, "f1_w" = f1_score_weighted))
+
+  return(list("prec_avg" = precision_avg, "rec_avg" = recall_avg, "f1_avg" = f1_score_avg, "prec_w" = precision_weighted, "rec_w" = recall_weighted, "f1_w" = f1_score_weighted))
 }
