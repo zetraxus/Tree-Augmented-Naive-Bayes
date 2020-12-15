@@ -1,4 +1,5 @@
 LAPLACE_CORRECTION <- 1
+DEFAULT_PROB_DIVIDER <- 10
 
 # Calculate probability of given class
 #
@@ -23,15 +24,15 @@ calculateClassProbability <- function(c, classes) {
 #
 # Return: conditional probability with Laplace correction for given attribute, attribute's parent and class value
 
-calculateCondProbWithLaplaceCorrectionForAtr <- function(a, p, c, atrParentClass) {
+calculateCondProbWithLaplaceCorrectionForAtr <- function(a, p, c, atrParentClass, laplaceCorrection) {
   rowsWithParentAndClass <- atrParentClass %>%
     filter(parent == p) %>%
     filter(class == c)
-  numberOfRowsWithParentAndClass <- nrow(rowsWithParentAndClass) + LAPLACE_CORRECTION
+  numberOfRowsWithParentAndClass <- nrow(rowsWithParentAndClass) + laplaceCorrection
   numberOfRowsWithX <- rowsWithParentAndClass %>%
     filter(atr == a) %>%
     nrow()
-  numberOfRowsWithX <- numberOfRowsWithX + LAPLACE_CORRECTION
+  numberOfRowsWithX <- numberOfRowsWithX + laplaceCorrection
 
   return(numberOfRowsWithX / numberOfRowsWithParentAndClass)
 }
@@ -45,11 +46,11 @@ calculateCondProbWithLaplaceCorrectionForAtr <- function(a, p, c, atrParentClass
 #
 # Return: conditional probability with Laplace correction for given root attribute and class value
 
-calculateCondProbWithLaplaceCorrectionForRoot <- function(r, c, rootClass) {
+calculateCondProbWithLaplaceCorrectionForRoot <- function(r, c, rootClass, laplaceCorrection) {
   rowsWithClass <- rootClass %>% filter(class == c)
-  numberOfRowsWithClass <- nrow(rowsWithClass) + LAPLACE_CORRECTION
+  numberOfRowsWithClass <- nrow(rowsWithClass) + laplaceCorrection
   numberOfRowsWithRootAndClass <- rowsWithClass %>% filter(root == r) %>% nrow()
-  numberOfRowsWithRootAndClass <- numberOfRowsWithRootAndClass + LAPLACE_CORRECTION
+  numberOfRowsWithRootAndClass <- numberOfRowsWithRootAndClass + laplaceCorrection
 
   return(numberOfRowsWithRootAndClass / numberOfRowsWithClass)
 }
@@ -100,11 +101,10 @@ predictClass <- function(class, args, tree, contionalProbabilities, classProbabi
 }
 
 # Return default probability
-# todo move "10" to CONST
 
 getDefaultProb <- function(contionalProb) {
   minProb <- contionalProb[which.min(contionalProb$probability),]$probability
-  return(minProb / 10)
+  return(minProb / DEFAULT_PROB_DIVIDER)
 }
 
 # Check whether object is empty

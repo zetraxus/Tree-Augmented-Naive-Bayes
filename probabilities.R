@@ -88,7 +88,8 @@ calculatePartialCondInformation <- function(atr1Val, atr2Val, classVal, atr1atr2
   } else {
     partialCondInf <- multiProb * (log((condProbAtr1Atr2 / (condProbAtr1 * condProbAtr2)), 2))
   }
-  # todo return.. ?
+
+  return(partialCondInf)
 }
 
 # Calculate conditional probabilities for every node from tree
@@ -104,7 +105,7 @@ calculatePartialCondInformation <- function(atr1Val, atr2Val, classVal, atr1atr2
 #    1      |    15    |    NA      |     2      |   0.7
 #    2      |    7     |    15      |     2      |   0.3
 
-calculateConditionalProbabilities <- function(tree, args, class) {
+calculateConditionalProbabilities <- function(tree, args, class, laplaceCorrection) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
@@ -112,14 +113,14 @@ calculateConditionalProbabilities <- function(tree, args, class) {
   rootAtr <- tree[1,]$results_atr1
   rootClass <- data.frame(args[, rootAtr], class)
   colnames(rootClass) <- c("root", "class")
-  probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForRoot(rootAtr, rootClass))
+  probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForRoot(rootAtr, rootClass, laplaceCorrection))
 
   for (row in seq_len(nrow(tree))) {
     atrNum <- tree[row,]$results_atr2
     parentNum <- tree[row,]$results_atr1
     atrParentClass <- data.frame(args[, atrNum], args[, parentNum], class)
     colnames(atrParentClass) <- c("atr", "parent", "class")
-    probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForAtribute(atrNum, atrParentClass))
+    probabilities <- rbind(probabilities, calculateConditionalProbabilitiesForAtribute(atrNum, atrParentClass, laplaceCorrection))
   }
 
   return(probabilities)
@@ -137,7 +138,7 @@ calculateConditionalProbabilities <- function(tree, args, class) {
 #    2      |    1     |    15      |     2      |   0.7
 #    2      |    2     |    15      |     2      |   0.3
 
-calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass) {
+calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass, laplaceCorrection) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
@@ -145,7 +146,7 @@ calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass)
   for (a in unique(atrParentClass$atr)) {
     for (p in unique(atrParentClass$parent)) {
       for (c in unique(atrParentClass$class)) {
-        conditionalProbability <- data.frame(atrNum, a, p, c, calculateCondProbWithLaplaceCorrectionForAtr(a, p, c, atrParentClass))
+        conditionalProbability <- data.frame(atrNum, a, p, c, calculateCondProbWithLaplaceCorrectionForAtr(a, p, c, atrParentClass, laplaceCorrection))
         colnames(conditionalProbability) <- columns
         probabilities <- rbind(probabilities, conditionalProbability)
       }
@@ -167,14 +168,14 @@ calculateConditionalProbabilitiesForAtribute <- function(atrNum, atrParentClass)
 #    1      |    1     |    NA      |     2      |   0.7
 #    1      |    2     |    NA      |     2      |   0.3
 
-calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass) {
+calculateConditionalProbabilitiesForRoot <- function(rootNum, rootClass, laplaceCorrection) {
   probabilities <- data.frame(matrix(ncol = 5, nrow = 0))
   columns <- c("atrNum", "atrVal", "parentVal", "classVal", "probability")
   colnames(probabilities) <- columns
 
   for (r in unique(rootClass$root)) {
     for (c in unique(rootClass$class)) {
-      conditionalProbability <- data.frame(rootNum, r, NA, c, calculateCondProbWithLaplaceCorrectionForRoot(r, c, rootClass))
+      conditionalProbability <- data.frame(rootNum, r, NA, c, calculateCondProbWithLaplaceCorrectionForRoot(r, c, rootClass, laplaceCorrection))
       colnames(conditionalProbability) <- columns
 
       probabilities <- rbind(probabilities, conditionalProbability)
