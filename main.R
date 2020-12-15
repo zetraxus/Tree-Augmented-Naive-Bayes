@@ -46,14 +46,12 @@ save <- function(dataset, results, method, output_file) {
 
 main <- function() {
   datasets <- c("zoo", "cmc", "diabetes", "wine", "occupancy")
-  #algorithms <- c("TAN", "NB", "CTREE")
-  algorithms <- c("TAN", "NB")
+  algorithms <- c("TAN", "NB", "CTREE")
   output_file <- "results"
 
   if (file.exists(output_file))
     file.remove(output_file)
 
-  t_all_start <- Sys.time()
   for (dataset in datasets) {
     t_start <- Sys.time()
     splitted_data <- preprocess_data(dataset)
@@ -62,9 +60,8 @@ main <- function() {
       results <- test(splitted_data$test, model, algorithm)
       save(dataset, results, algorithm, output_file)
     }
-    print(paste(dataset, Sys.time() - t_start))
+    print(paste(dataset, Sys.time() - t_start)) # for debugging purposes
   }
-  print(Sys.time() - t_all_start)
 }
 
 main()
