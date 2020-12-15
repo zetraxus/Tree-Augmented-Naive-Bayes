@@ -64,7 +64,6 @@ calculateCondProbWithLaplaceCorrectionForRoot <- function(r, c, rootClass) {
 #   classProbabilities <- probabilities of every class from training data
 #
 # Return: probability of given class for given attributes values
-#
 
 predictClass <- function(class, args, tree, contionalProbabilities, classProbabilities, defaultProb) {
   contionalProbForClass <- contionalProbabilities %>% filter(classVal == class)
