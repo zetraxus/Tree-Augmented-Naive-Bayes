@@ -41,7 +41,7 @@ test <- function(data, model, algorithm) {
 
 save <- function(dataset, results, method, output_file) {
   cat(paste(dataset, method), file = output_file, sep = "\n", append = TRUE)
-  cat(paste(round(as.numeric(results), 2)), file = output_file, sep = "\n", append = TRUE)
+  cat(paste(round(as.numeric(results), 5)), file = output_file, sep = "\n", append = TRUE)
 }
 
 main <- function() {
