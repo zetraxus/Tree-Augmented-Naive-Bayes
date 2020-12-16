@@ -1,4 +1,3 @@
-LAPLACE_CORRECTION <- 1
 DEFAULT_PROB_DIVIDER <- 10
 
 # Calculate probability of given class
