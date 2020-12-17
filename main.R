@@ -14,13 +14,13 @@ preprocess_data <- function(dataset) {
   return(splitted_data)
 }
 
-train <- function(data, method) {
+train <- function(data, method, param) {
   if (method == "TAN")
-    return(trainTAN(data))
+    return(trainTAN(data, param))
   else if (method == "NB")
-    return(trainNB(data))
+    return(trainNB(data, param))
   else if (method == "CTREE")
-    return(trainCTREE(data))
+    return(trainCTREE(data, param))
 }
 
 test <- function(data, model, algorithm) {
@@ -39,8 +39,8 @@ test <- function(data, model, algorithm) {
   return(calc_prec_recall_f1(list("pred" = predicted, "real" = real)))
 }
 
-save <- function(dataset, results, method, output_file) {
-  cat(paste(dataset, method), file = output_file, sep = "\n", append = TRUE)
+save <- function(dataset, results, method, param, output_file) {
+  cat(paste(dataset, method, param), file = output_file, sep = "\n", append = TRUE)
   cat(paste(round(as.numeric(results), 5)), file = output_file, sep = "\n", append = TRUE)
 }
 
@@ -49,6 +49,12 @@ main <- function() {
   algorithms <- c("TAN", "NB", "CTREE")
   output_file <- "results"
 
+  hyperParams <- new.env()
+
+  hyperParams$TAN <- c(1, 2, 3)
+  hyperParams$NB <- c(1, 2, 3)
+  hyperParams$CTREE <- c(0, 2, 4)
+
   if (file.exists(output_file))
     file.remove(output_file)
 
@@ -56,9 +62,11 @@ main <- function() {
     t_start <- Sys.time()
     splitted_data <- preprocess_data(dataset)
     for (algorithm in algorithms) {
-      model <- train(splitted_data$train, algorithm)
-      results <- test(splitted_data$test, model, algorithm)
-      save(dataset, results, algorithm, output_file)
+      for (param in hyperParams[[algorithm]]) {
+        model <- train(splitted_data$train, algorithm, param)
+        results <- test(splitted_data$test, model, algorithm)
+        save(dataset, results, algorithm, param, output_file)
+      }
     }
     print(paste(dataset, Sys.time() - t_start)) # for debugging purposes
   }
