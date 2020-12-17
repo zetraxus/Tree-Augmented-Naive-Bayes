@@ -51,9 +51,9 @@ main <- function() {
 
   hyperParams <- new.env()
 
-  hyperParams$TAN <- c(1, 2, 3)
-  hyperParams$NB <- c(1, 2, 3)
-  hyperParams$CTREE <- c(0, 2, 4)
+  hyperParams$TAN <- c(0, 0.1, 0.5, 1, 2, 3)
+  hyperParams$NB <- c(0, 0.1, 0.5, 1, 2, 3)
+  hyperParams$CTREE <- c(0, 1, 2, 3, 4)
 
   if (file.exists(output_file))
     file.remove(output_file)
