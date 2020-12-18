@@ -1,4 +1,3 @@
-
 BINS <- 10
 
 # discretize column "V1" in dataframe "data", bins = 5
