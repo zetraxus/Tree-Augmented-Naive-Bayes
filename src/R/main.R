@@ -3,11 +3,11 @@
 
 library(dplyr)
 library(infotheo)
-source("predict.R")
-source("train.R")
-source("probabilities.R")
-source("utils.R")
-source("metrices.R")
+source("src/R/predict.R")
+source("src/R/train.R")
+source("src/R/probabilities.R")
+source("src/R/utils.R")
+source("src/R/metrices.R")
 
 preprocess_data <- function(dataset) {
   dataset_filename <- gsub(" ", "", paste("data/", dataset, ".csv"))
@@ -50,7 +50,7 @@ save <- function(dataset, results, method, param, output_file) {
 main <- function() {
   datasets <- c("zoo", "cmc", "diabetes", "wine", "occupancy")
   algorithms <- c("TAN", "NB", "CTREE")
-  output_file <- "results"
+  output_file <- "results_dir/results"
 
   hyperParams <- new.env()
 
@@ -71,6 +71,7 @@ main <- function() {
       }
     }
   }
+  cat("end", file = output_file, sep = "\n", append = TRUE)
 }
 
 main()

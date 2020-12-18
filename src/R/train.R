@@ -1,7 +1,7 @@
 library(e1071)
 library(party)
 
-source("tan.R")
+source("src/R/tan.R")
 
 # Train TAN model on given data
 #

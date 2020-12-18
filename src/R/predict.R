@@ -1,7 +1,7 @@
 library(e1071)
 library(party)
 
-source("tan.R")
+source("src/R/tan.R")
 
 # Predict class for given attributes values based on given model
 #
