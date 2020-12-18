@@ -4,5 +4,4 @@
 # Usage:  
 ./download_data.sh  
 Rscript src/R/main.R  
->>>>>>> e0ff90de8155c5cb93e254ce349f33ddd0ab876d
 python3 src/Python/analyse_results.py
