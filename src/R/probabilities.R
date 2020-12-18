@@ -1,4 +1,4 @@
-source("math.R")
+source("src/R/math.R")
 
 # Calculate conditional mutual information between every two attributes
 #
