@@ -71,6 +71,7 @@ main <- function() {
       }
     }
   }
+  cat("end", file = output_file, sep = "\n", append = TRUE)
 }
 
 main()
