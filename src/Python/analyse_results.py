@@ -1,6 +1,8 @@
-with open('results') as input, open('results_dir/precision', 'w') as precision, open('results_dir/recall', 'w') as recall, open('results_dir/f1',
+with open('results') as input, open('../../results_dir/precision', 'w') as precision, open('../../results_dir/recall', 'w') as recall, open(
+        '../../results_dir/f1',
                                                                                                         'w') as f1, \
-        open('results_dir/precision_w', 'w') as precision_w, open('results_dir/recall_w', 'w') as recall_w, open('results_dir/f1_w', 'w') as f1_w:
+        open('../../results_dir/precision_w', 'w') as precision_w, open('../../results_dir/recall_w', 'w') as recall_w, open(
+    '../../results_dir/f1_w', 'w') as f1_w:
 
     i, dataset_algorithm, max_values, best_algorithms = 0, "", [0, 0, 0, 0, 0, 0], ["", "", "", "", "", ""]
     for row in input:

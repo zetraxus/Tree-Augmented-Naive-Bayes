@@ -10,7 +10,7 @@ source("utils.R")
 source("metrices.R")
 
 preprocess_data <- function(dataset) {
-  dataset_filename <- gsub(" ", "", paste("data/", dataset, ".csv"))
+  dataset_filename <- gsub(" ", "", paste("../../data/", dataset, ".csv"))
   data <- read.csv(file = dataset_filename, header = FALSE)
   data <- discretize_data(data)
   splitted_data <- split_dataset(data, 0.8)
@@ -50,7 +50,7 @@ save <- function(dataset, results, method, param, output_file) {
 main <- function() {
   datasets <- c("zoo", "cmc", "diabetes", "wine", "occupancy")
   algorithms <- c("TAN", "NB", "CTREE")
-  output_file <- "results"
+  output_file <- "../../results"
 
   hyperParams <- new.env()
 
