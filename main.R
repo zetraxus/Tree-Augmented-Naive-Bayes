@@ -3,8 +3,11 @@
 
 library(dplyr)
 library(infotheo)
-source("functions.R")
+source("predict.R")
+source("train.R")
 source("probabilities.R")
+source("utils.R")
+source("metrices.R")
 
 preprocess_data <- function(dataset) {
   dataset_filename <- gsub(" ", "", paste("data/", dataset, ".csv"))
@@ -51,15 +54,14 @@ main <- function() {
 
   hyperParams <- new.env()
 
-  hyperParams$TAN <- c(1, 2, 3)
-  hyperParams$NB <- c(1, 2, 3)
-  hyperParams$CTREE <- c(0, 2, 4)
+  hyperParams$TAN <- c(0, 0.1, 0.5, 1, 2, 3)
+  hyperParams$NB <- c(0, 0.1, 0.5, 1, 2, 3)
+  hyperParams$CTREE <- c(0, 1, 2, 3, 4)
 
   if (file.exists(output_file))
     file.remove(output_file)
 
   for (dataset in datasets) {
-    t_start <- Sys.time()
     splitted_data <- preprocess_data(dataset)
     for (algorithm in algorithms) {
       for (param in hyperParams[[algorithm]]) {
@@ -68,7 +70,6 @@ main <- function() {
         save(dataset, results, algorithm, param, output_file)
       }
     }
-    print(paste(dataset, Sys.time() - t_start)) # for debugging purposes
   }
 }
 

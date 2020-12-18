@@ -1,0 +1,15 @@
+zoo;TAN_0.1;0,98611
+zoo;NB_0;0,65278
+zoo;CTREE_0;0,66667
+cmc;TAN_0;0,52492
+cmc;NB_0;0,52778
+cmc;CTREE_0;0,5005
+diabetes;TAN_1;0,78385
+diabetes;NB_0;0,73788
+diabetes;CTREE_2;0,3
+wine;TAN_0;0,2763
+wine;NB_0;0,26419
+wine;CTREE_2;0,09127
+occupancy;TAN_0.1;0,98615
+occupancy;NB_0;0,97819
+occupancy;CTREE_3;0,00261
